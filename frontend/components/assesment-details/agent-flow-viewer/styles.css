@@ -1,0 +1,42 @@
+.react-flow__edge-path {
+  transition: all 0.3s ease;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 5;
+  animation: flowAnimation 1s linear infinite;
+}
+
+@keyframes flowAnimation {
+  0% {
+    stroke-dashoffset: 10;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.react-flow__node {
+  transition: transform 0.3s ease;
+}
+
+.react-flow__node:hover {
+  transform: translateY(-2px);
+}
+
+.react-flow__controls {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.react-flow__controls button {
+  border: none !important;
+  color: hsl(var(--foreground)) !important;
+  background: hsl(var(--background)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+.react-flow__controls button:hover {
+  background: hsl(var(--muted)) !important;
+} 
