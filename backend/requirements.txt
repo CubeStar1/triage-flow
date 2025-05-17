@@ -1,0 +1,8 @@
+google-adk
+tensorflow
+faiss-cpu
+fastapi
+google-generativeai
+sentence-transformers
+supabase
+dotenv

@@ -15,6 +15,11 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 ```
 
+3. Run requirements.txt compulsorily inside the same venv after this:
+```bash
+pip install -r requirements.txt
+```
+
 ## Usage
 
 Start the agents in separate terminals:
