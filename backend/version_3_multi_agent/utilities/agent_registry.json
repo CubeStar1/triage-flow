@@ -1,0 +1,22 @@
+{
+    "agents": [
+        {
+            "name": "triage_orchestrator",
+            "endpoint": "http://localhost:8000/triage_orchestrator",
+            "capabilities": ["coordination", "task_delegation"],
+            "description": "Coordinates medical image triage workflow between agents"
+        },
+        {
+            "name": "description_fetcher",
+            "endpoint": "http://localhost:8001/description_fetcher",
+            "capabilities": ["medical_knowledge", "text_generation"],
+            "description": "Fetches and summarizes medical condition information"
+        },
+        {
+            "name": "triage_analyst",
+            "endpoint": "http://localhost:8002/triage_analyst",
+            "capabilities": ["severity_assessment", "diagnosis_ranking"],
+            "description": "Analyzes conditions and assigns severity levels"
+        }
+    ]
+}

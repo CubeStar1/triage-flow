@@ -1,0 +1,40 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="a2a_samples",
+    version="1.0.0",
+    packages=find_packages(),
+    install_requires=[
+        "google-cloud-aiplatform>=1.36.0",
+        "google-generativeai>=0.3.0",
+        "google-cloud-core>=2.3.3",
+        "google-api-core>=2.15.0",
+        "google-auth>=2.23.0",
+        "google-cloud-storage>=2.10.0",
+        "click>=8.1.7",
+        "httpx>=0.25.0",
+        "prometheus-client>=0.17.1",
+        "pydantic>=2.4.2",
+        "python-json-logger>=2.0.7",
+        "python-multipart>=0.0.6",
+        "starlette>=0.27.0",
+        "structlog>=23.1.0",
+        "uvicorn>=0.24.0"
+    ],
+    python_requires=">=3.8",
+    author="Your Name",
+    author_email="your.email@example.com",
+    description="A2A Samples with Google ADK Integration",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/yourusername/a2a_samples",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+    ],
+) 
