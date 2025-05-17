@@ -19,7 +19,7 @@ export interface FooterConfig {
 
 export const footerConfig: FooterConfig = {
   brand: {
-    title: "Smart Triage Assistant",
+    title: "Triage Flow",
     description: "AI-powered medical triage system combining vision and language understanding"
   },
   sections: [

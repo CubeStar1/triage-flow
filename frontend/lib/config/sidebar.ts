@@ -3,7 +3,7 @@ import { SidebarConfig } from "@/components/global/app-sidebar";
 
 const sidebarConfig: SidebarConfig = {
   brand: {
-    title: "Smart Triage",
+    title: "Triage Flow",
     icon: "/logos/health-triage-logo.png",
     href: "/"
   },
@@ -11,48 +11,43 @@ const sidebarConfig: SidebarConfig = {
     {
       label: "Navigation",
       items: [
-        // {
-        //   title: "Home",
-        //   href: "/",
-        //   icon: Icons.home
-        // },
-        // {
-        //   title: "Dashboard",
-        //   href: "/dashboard",
-        //   icon: Icons.layoutDashboard
-        // },
+        {
+          title: "Home",
+          href: "/",
+          icon: Icons.home
+        },
+        {
+          title: "Dashboard",
+          href: "/dashboard",
+          icon: Icons.layoutDashboard
+        },
         {
           title: "New Assessment",
           href: "/assessment/new",
           icon: Icons.filePlus
         },
-        // {
-        //   title: "Assessment History",
-        //   href: "/assessment",
-        //   icon: Icons.activity
-        // },
-        // {
-        //   title: "Voice Assistant",
-        //   href: "/voice-assistant",
-        //   icon: Icons.mic
-        // }
+        {
+          title: "Assessment History",
+          href: "/assessment",
+          icon: Icons.activity
+        },
+        {
+          title: "Video Assistant",
+          href: "/video-assistant",
+          icon: Icons.video
+        }
       ]
     },
-    // {
-    //     label: "Account",
-    //     items: [
-    //       {
-    //         title: "Profile",
-    //         href: "/profile",
-    //         icon: Icons.user
-    //       },
-    //       {
-    //         title: "Settings",
-    //         href: "/settings",
-    //         icon: Icons.settings
-    //       }
-    //     ]
-    //   }
+    {
+        label: "Account",
+        items: [
+          {
+            title: "Profile",
+            href: "/profile",
+            icon: Icons.user
+          }
+        ]
+      }
     
   ]
 }

@@ -17,21 +17,21 @@ export function SymptomDetailsSection({ form }: SymptomDetailsSectionProps) {
   const watchHasFever = form.watch("hasFever");
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <CardHeader>
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-cyan-50 via-white to-blue-50 dark:from-slate-900 dark:via-cyan-900/10 dark:to-slate-900">
+      <CardHeader className="pb-2">
         <div className="flex items-center">
-          <Stethoscope className="h-6 w-6 mr-3 text-primary" />
-          <CardTitle className="text-2xl">Symptom Details</CardTitle>
+          <Stethoscope className="h-6 w-6 mr-3 text-cyan-500" />
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Symptom Details</CardTitle>
         </div>
-        <CardDescription>Help us understand more about the current symptoms.</CardDescription>
+        <CardDescription className="text-slate-600 dark:text-slate-300">Help us understand more about the current symptoms.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/50 dark:bg-slate-900/50 rounded-b-xl">
         <FormField 
           control={form.control} 
           name="symptomDuration" 
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium flex items-center"><CalendarDays size={16} className="mr-2 opacity-70"/>Symptom Duration</FormLabel>
+              <FormLabel className="font-medium flex items-center"><CalendarDays size={16} className="mr-2 text-cyan-500"/>Symptom Duration</FormLabel>
               <FormControl><Input placeholder="E.g., 2 days, 1 week" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -42,7 +42,7 @@ export function SymptomDetailsSection({ form }: SymptomDetailsSectionProps) {
           name="painLevel" 
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium flex items-center"><Smile size={16} className="mr-2 opacity-70"/>Pain Level (0-10)</FormLabel>
+              <FormLabel className="font-medium flex items-center"><Smile size={16} className="mr-2 text-cyan-500"/>Pain Level (0-10)</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl><SelectTrigger><SelectValue placeholder="Select pain level" /></SelectTrigger></FormControl>
                 <SelectContent>

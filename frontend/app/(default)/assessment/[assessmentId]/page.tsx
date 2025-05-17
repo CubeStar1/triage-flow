@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { TriageData } from '@/lib/fetchers/assessment';
-import { ArrowLeft, FileText, Image as ImageIconLucideBase, Printer, Download, UserCircle as UserCircleIconBase, Network } from 'lucide-react';
+import useUser from '@/hooks/use-user';
+import { ArrowLeft, FileText, Image as ImageIconLucideBase, Printer, Download, UserCircle as UserCircleIconBase, Network, Mic } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PatientDetails } from "@/components/assesment-details/patient-details";
@@ -14,6 +15,7 @@ import { DashboardLoadingSkeleton } from "@/components/assesment-details/loading
 import { fetchAssessmentById } from '@/lib/fetchers/assessment';
 import * as React from 'react'
 import { AgentFlowViewer } from "@/components/assesment-details/agent-flow-viewer";
+import { CompactVoiceAssistant } from "@/components/voice-assistant/compact-voice-assistant";
 
 
 // Define props for the page, including params for the dynamic segment
@@ -21,6 +23,7 @@ import { AgentFlowViewer } from "@/components/assesment-details/agent-flow-viewe
 
 export default function TriagePage({ params }: { params: Promise<{ assessmentId: string }> }) {
     const { assessmentId } = React.use(params)
+    const { data: user } = useUser();
 
   // Use TanStack Query's useQuery hook
   const { 
@@ -69,33 +72,48 @@ export default function TriagePage({ params }: { params: Promise<{ assessmentId:
         <div className="container mx-auto px-4 md:px-6 lg:px-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6 xl:gap-8 overflow-hidden min-h-0">
           <div className="lg:col-span-2 flex flex-col overflow-hidden">
             <Tabs defaultValue="image" className="w-full flex flex-col flex-1 min-h-0">
-              <TabsList className="grid w-full grid-cols-3 mb-3 shrink-0">
+              <TabsList className={`grid w-full ${user?.role === 'patient' ? 'grid-cols-3' : 'grid-cols-3'} mb-3 shrink-0`}>
                 <TabsTrigger value="image">
-                  <ImageIconLucideBase className="mr-2 h-4 w-4" /> Patient Image
+                  <ImageIconLucideBase className="mr-2 h-4 w-4" /> Image
                 </TabsTrigger>
                 <TabsTrigger value="details">
-                  <UserCircleIconBase className="mr-2 h-4 w-4" /> Patient Details
+                  <UserCircleIconBase className="mr-2 h-4 w-4" /> Details
                 </TabsTrigger>
-                <TabsTrigger value="flow">
-                  <Network className="mr-2 h-4 w-4" /> Agent Flow
-                </TabsTrigger>
+                {user?.role === 'healthcare_worker' && (
+                  <TabsTrigger value="flow">
+                    <Network className="mr-2 h-4 w-4" /> Agent 
+                  </TabsTrigger>
+                )}
+                {user?.role === 'patient' && (
+                  <TabsTrigger value="voice">
+                    <Mic className="mr-2 h-4 w-4" /> Voice Assistant
+                  </TabsTrigger>
+                )}
               </TabsList>
               
               <TabsContent value="image" className="flex-1 overflow-y-auto">
                 <PatientImageViewer 
-                  imageUrl={triageData.patientImageUrl} 
-                  altText={triageData.triageOutcome.injuryType || "Patient submitted image"} 
+                  imageUrl={triageData.imageUrl} 
+                  altText={triageData.predictedInjuryLabel || "Patient submitted image"} 
                   caption="Visual input provided for triage."
                 />
               </TabsContent>
 
               <TabsContent value="details" className="">
-                <PatientDetails />
+                <PatientDetails triageData={triageData} />
               </TabsContent>
 
-              <TabsContent value="flow" className="flex-1 overflow-y-auto">
-                <AgentFlowViewer triageData={triageData} />
-              </TabsContent>
+              {user?.role === 'healthcare_worker' && (
+                <TabsContent value="flow" className="flex-1 overflow-y-auto">
+                  <AgentFlowViewer triageData={triageData} />
+                </TabsContent>
+              )}
+
+              {user?.role === 'patient' && (
+                <TabsContent value="voice" className="flex-1 overflow-y-auto">
+                  <CompactVoiceAssistant triageData={triageData} />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
 

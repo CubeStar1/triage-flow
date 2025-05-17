@@ -1,41 +1,82 @@
 import { NextResponse } from 'next/server';
-import type { TriageData } from '@/lib/fetchers/assessment';
-
-const mockTriageDataFor123: TriageData = {
-  id: 123, 
-  patientImageUrl: '/images/skin-laceration.jpg',
-  symptomsText: 'Patient reports a deep cut on the forearm (ID: 123), sustained from a kitchen knife. Bleeding was initially heavy but has slowed. Area is painful. This data is returned for ANY requested ID.',
-  triageOutcome: {
-    injuryType: 'Laceration Wound (Default Mock)',
-    description: 'A laceration is a wound that is produced by the tearing of soft body tissue. This type of wound is often irregular and jagged.',
-    severityScore: 4,
-    severityReason: 'Deep cut with potential for infection and may require stitches. Significant initial bleeding reported.',
-    triageRecommendation: 'Seek urgent medical attention (e.g., visit an Urgent Care center or Emergency Room) for wound assessment and possible stitches. Clean the wound gently with soap and water if possible, and apply pressure with a clean cloth if bleeding continues.',
-    recommendationStatus: 'severe',
-    topPossibleDiagnoses: [
-      { name: 'Deep Laceration', confidence: 0.85, description: 'Requires medical evaluation for closure and infection prevention.' },
-      { name: 'Superficial Laceration with Complications', confidence: 0.10, description: 'Less likely given depth, but observe for signs of infection.' },
-    ],
-  },
-};
+import type { TriageData, PossibleDiagnosis } from '@/lib/fetchers/assessment';
+import { createSupabaseServer } from '@/lib/supabase/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id: paramId } = await params; 
+  const { id } = params;
+  
+  try {
+    const supabase = await createSupabaseServer();
 
-  console.log(`API ROUTE (/api/triage/[id]): Received request for ID: ${paramId}. Returning data for ID 123.`);
+    // Fetch the main assessment data
+    const { data: assessment, error: assessmentError } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300));
+    if (assessmentError) throw assessmentError;
+    if (!assessment) {
+      return NextResponse.json({ message: 'Assessment not found' }, { status: 404 });
+    }
 
-  if (mockTriageDataFor123) {
-    return NextResponse.json(mockTriageDataFor123);
-  } else {
-    return NextResponse.json({ message: `Critical error: Default mock data for ID 123 is missing.` }, { status: 500 });
+    // Fetch possible diagnoses for this assessment
+    const { data: diagnoses, error: diagnosesError } = await supabase
+      .from('possible_diagnoses')
+      .select('*')
+      .eq('assessment_id', id)
+      .order('confidence_score', { ascending: false });
+
+    if (diagnosesError) throw diagnosesError;
+
+    // Transform the data to match the TriageData interface
+    const triageData: TriageData = {
+      id: assessment.id,
+      userId: assessment.user_id,
+      symptomDescription: assessment.symptom_description,
+      imageFileName: assessment.image_file_name,
+      imageFileType: assessment.image_file_type,
+      imageUrl: assessment.image_url,
+      imageStoragePath: assessment.image_storage_path,
+      patientName: assessment.patient_name,
+      patientAge: assessment.patient_age,
+      patientSex: assessment.patient_sex,
+      symptomDuration: assessment.symptom_duration,
+      painLevel: assessment.pain_level,
+      affectedBodyParts: assessment.affected_body_parts,
+      hasFever: assessment.has_fever || false,
+      temperatureCelsius: assessment.temperature_celsius,
+      knownAllergies: assessment.known_allergies,
+      currentMedications: assessment.current_medications,
+      recentTravel: assessment.recent_travel === 'yes' ? 'yes' : 'no',
+      preExistingConditions: assessment.pre_existing_conditions,
+      predictedInjuryLabel: assessment.predicted_injury_label || 'Unknown',
+      injuryDescriptionSummary: assessment.injury_description_summary || 'No description available',
+      severityScore: assessment.severity_score || 0,
+      severityReason: assessment.severity_reason || 'No severity reason provided',
+      triageRecommendation: assessment.triage_recommendation || 'No recommendation available',
+      recommendationStatus: assessment.recommendation_status || 'mild',
+      possibleDiagnoses: diagnoses?.map(d => ({
+        id: d.id,
+        assessmentId: d.assessment_id,
+        name: d.diagnosis_name,
+        confidence: d.confidence_score,
+        description: d.description,
+        createdAt: d.created_at
+      })) as PossibleDiagnosis[],
+      createdAt: assessment.created_at || new Date().toISOString(),
+      updatedAt: assessment.updated_at || new Date().toISOString()
+    };
+
+    return NextResponse.json(triageData);
+  } catch (error) {
+    console.error('Error fetching assessment:', error);
+    return NextResponse.json(
+      { message: 'Error fetching assessment data' },
+      { status: 500 }
+    );
   }
 }
-
-// POST, PUT, DELETE handlers would go here if needed for a full CRUD API
-// For example, a POST to /api/triage (without [id]) could create a new assessment
-// and return its ID, which then could be used in /api/triage/[id]

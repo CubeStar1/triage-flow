@@ -17,7 +17,7 @@ export interface HeaderConfig {
 
 export const headerConfig: HeaderConfig = {
   brand: {
-    title: "Smart Triage",
+    title: "Triage Flow",
     icon: "/logos/health-triage-logo.png"
   },
   navigationLinks: [
@@ -34,8 +34,8 @@ export const headerConfig: HeaderConfig = {
       label: "New Assessment"
     },
     {
-      href: "/contact",
-      label: "Contact"
+      href: "/video-assistant",
+      label: "Video Assistant"
     }
   ]
 }

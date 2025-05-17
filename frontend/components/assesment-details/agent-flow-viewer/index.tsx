@@ -247,7 +247,7 @@ export function AgentFlowViewer({ triageData }: AgentFlowViewerProps) {
   }, [setNodes, setEdges]);
 
   return (
-    <Card className="w-full h-[800px] p-4">
+    <Card className="w-full h-[calc(100vh-19rem)] ">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -266,7 +266,7 @@ export function AgentFlowViewer({ triageData }: AgentFlowViewerProps) {
         minZoom={0.5}
         maxZoom={1.5}
       >
-        <Background color="#666" gap={16} />
+        <Background color="#666" gap={18} />
         <Controls />
       </ReactFlow>
     </Card>

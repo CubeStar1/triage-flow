@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllAssessments } from '@/lib/fetchers/assessment';
-import type { AssessmentSummary } from '@/lib/fetchers/assessment';
+import type { TriageData } from '@/lib/fetchers/assessment';
 import { AssessmentList } from '@/components/assessment-history/assessment-list';
 import { AssessmentHistorySkeleton } from '@/components/assessment-history/assessment-history-skeleton';
 import { AssessmentTable } from '@/components/assessment-history/assessment-table';
@@ -21,7 +21,7 @@ export default function AssessmentHistoryPage() {
     isLoading, 
     isError, 
     error 
-  } = useQuery<AssessmentSummary[], Error>({
+  } = useQuery<TriageData[], Error>({
     queryKey: ['assessments'],
     queryFn: fetchAllAssessments,
     // staleTime: 5 * 60 * 1000, // Example: 5 minutes

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Send, AlertTriangle, User, CalendarDays, Droplets, Thermometer, Pill, Plane, Stethoscope, MapPin, Smile } from 'lucide-react';
 import { createAssessment, type CreateAssessmentPayload } from '@/lib/fetchers/assessment';
-import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import useUser from '@/hooks/use-user';
 
@@ -24,20 +23,14 @@ import { MedicalHistorySection } from './form-sections/medical-history';
 // Form schema matches CreateAssessmentPayload type
 const assessmentFormSchema = z.object({
   patientName: z.string().optional(),
-  patientAge: z.union([
-    z.number().positive("Age must be a positive number").int("Age must be an integer"),
-    z.literal('')
-  ]).optional(),
+  patientAge: z.coerce.number().positive("Age must be a positive number").int("Age must be an integer").optional().or(z.literal('')),
   patientSex: z.enum(['Male', 'Female', 'Other', 'Prefer not to say']).optional(),
   symptoms: z.string().min(10, { message: "Please describe your symptoms in at least 10 characters." }),
   symptomDuration: z.string().optional(),
   painLevel: z.string().optional(),
   affectedBodyParts: z.string().optional(),
   hasFever: z.boolean().optional(),
-  temperature: z.union([
-    z.number().min(35, "Temperature must be at least 35°C").max(42, "Temperature must be at most 42°C"),
-    z.literal('')
-  ]).optional(),
+  temperature: z.coerce.number().min(35).max(42).optional().or(z.literal('')),
   knownAllergies: z.string().optional(),
   currentMedications: z.string().optional(),
   recentTravel: z.enum(['yes', 'no']).optional(),
@@ -61,7 +54,6 @@ const fileToDataUrl = (file: File): Promise<string> =>
 export function NewAssessmentForm() {
   const router = useRouter();
   const { data: user } = useUser();
-  console.log(user);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -70,18 +62,18 @@ export function NewAssessmentForm() {
     resolver: zodResolver(assessmentFormSchema),
     defaultValues: {
       patientName: "",
-      patientAge: '',
+      patientAge: "",
       patientSex: undefined,
-      symptoms: '',
-      symptomDuration: '',
-      painLevel: '',
-      affectedBodyParts: '',
+      symptoms: "",
+      symptomDuration: "",
+      painLevel: "",
+      affectedBodyParts: "",
       hasFever: false,
-      temperature: '',
-      knownAllergies: '',
-      currentMedications: '',
+      temperature: "",
+      knownAllergies: "",
+      currentMedications: "",
       recentTravel: undefined,
-      preExistingConditions: '',
+      preExistingConditions: "",
       image: undefined,
       imageFileName: undefined,
       imageFileType: undefined,
@@ -92,35 +84,9 @@ export function NewAssessmentForm() {
     mutationFn: async (data: AssessmentFormData) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      let imageUrl, imageStoragePath;
-      
-      // Handle image upload on client side if image exists
-      if (imageFile) {
-        const supabase = createSupabaseBrowser();
-        const timestamp = new Date().toISOString();
-        const path = `${user.id}/${timestamp}-${imageFile.name}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('assessment-images')
-          .upload(path, imageFile);
-
-        if (uploadError) {
-          throw new Error(`Failed to upload image: ${uploadError.message}`);
-        }
-
-        imageStoragePath = uploadData.path;
-        const { data: { publicUrl } } = supabase.storage
-          .from('assessment-images')
-          .getPublicUrl(imageStoragePath);
-        
-        imageUrl = publicUrl;
-      }
-      
       const payload: CreateAssessmentPayload = {
         ...data,
-        userId: user.id,
-        imageUrl,
-        imageStoragePath
+        userId: user.id
       };
       
       return createAssessment(payload);
@@ -145,12 +111,9 @@ export function NewAssessmentForm() {
       if (imageFile) {
         try {
           const base64Image = await fileToDataUrl(imageFile);
-          submissionData = {
-            ...submissionData,
-            image: base64Image,
-            imageFileName: imageFile.name,
-            imageFileType: imageFile.type
-          };
+          submissionData.image = base64Image;
+          submissionData.imageFileName = imageFile.name;
+          submissionData.imageFileType = imageFile.type;
         } catch (error) {
           console.error('Error converting image to Base64:', error);
           setError('Could not process image file.');
@@ -160,15 +123,11 @@ export function NewAssessmentForm() {
       }
 
       // Validate that either symptoms or image is provided
-      if (!submissionData.symptoms && !imageFile) {
+      if (!submissionData.symptoms && !submissionData.image) {
         setError('Please describe your symptoms or upload an image.');
         setIsSubmitting(false);
         return;
       }
-
-      // Convert empty strings to undefined for numeric fields
-      if (submissionData.patientAge === '') submissionData.patientAge = undefined;
-      if (submissionData.temperature === '') submissionData.temperature = undefined;
 
       await mutation.mutateAsync(submissionData);
     } catch (error) {
@@ -177,11 +136,6 @@ export function NewAssessmentForm() {
     }
   }
 
-  // Redirect to login if no user
-  if (!user) {
-    router.push('/signin');
-    return null;
-  }
 
   return (
     <Form {...form}>

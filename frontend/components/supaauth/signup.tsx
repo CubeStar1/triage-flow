@@ -41,6 +41,9 @@ const FormSchema = z
     "confirm-pass": z.string().min(6, {
       message: "Password is too short",
     }),
+    role: z.enum(['healthcare_worker', 'patient'], {
+      required_error: "Please select a role",
+    }),
   })
   .refine(
     (data) => {
@@ -75,14 +78,17 @@ export default function SignUp({ redirectTo }: { redirectTo: string }) {
       email: "",
       password: "",
       "confirm-pass": "",
+      role: "patient",
     },
   });
   const postEmail = async ({
     email,
     password,
+    role,
   }: {
     email: string;
     password: string;
+    role: 'healthcare_worker' | 'patient';
   }) => {
     const requestOptions = {
       method: "POST",
@@ -92,6 +98,7 @@ export default function SignUp({ redirectTo }: { redirectTo: string }) {
       body: JSON.stringify({
         email,
         password,
+        role,
       }),
     };
     // Send the POST request
@@ -103,6 +110,7 @@ export default function SignUp({ redirectTo }: { redirectTo: string }) {
     const json = await postEmail({
       email: data.email,
       password: data.password,
+      role: data.role,
     });
     if (!json.error) {
       router.replace(
@@ -188,6 +196,25 @@ export default function SignUp({ redirectTo }: { redirectTo: string }) {
                   </div>
                 </FormControl>
                 <FormMessage className="text-red-500 text-xs sm:text-sm" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <FormControl>
+                  <select
+                    {...field}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="patient">Patient</option>
+                    <option value="healthcare_worker">Healthcare Worker</option>
+                  </select>
+                </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -349,17 +376,15 @@ export default function SignUp({ redirectTo }: { redirectTo: string }) {
               onClick={async () => {
                 if (!isSendAgain) {
                   startSendAgain(async () => {
-                    if (!form.getValues("password")) {
-                      const json = await postEmail({
-                        email: form.getValues("email"),
-                        password: form.getValues("password"),
-                      });
-                      if (json.error) {
-                        toast.error("Failed to resend email");
-                      } else {
-                        toast.success("Please check your email.");
-                      }
+                    const res = await postEmail({
+                      email: form.getValues("email"),
+                      password: form.getValues("password"),
+                      role: form.getValues("role"),
+                    });
+                    if (res.error) {
+                      toast.error("Failed to resend email");
                     } else {
+                      toast.success("Email sent successfully");
                       router.replace(pathname || "/register");
                       form.setValue("email", existEmail || "");
                       form.setValue("password", "");
@@ -372,7 +397,7 @@ export default function SignUp({ redirectTo }: { redirectTo: string }) {
               <AiOutlineLoading3Quarters
                 className={cn("w-4 h-4", !isSendAgain ? "hidden" : "animate-spin")}
               />
-              Send me another code
+              Send again
             </span>
           </div>
 

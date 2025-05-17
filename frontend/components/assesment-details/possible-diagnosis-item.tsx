@@ -1,4 +1,4 @@
-import { PossibleDiagnosis } from "@/app/api/triage/route";
+import { PossibleDiagnosis } from "@/lib/fetchers/assessment";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, HelpCircle, Percent } from 'lucide-react';
 import { cn } from "@/lib/utils";

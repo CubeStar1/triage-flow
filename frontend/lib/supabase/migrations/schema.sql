@@ -3,6 +3,39 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
 -- Create ENUM types for controlled vocabularies
 
+-- User Role ENUM
+CREATE TYPE public.user_role_enum AS ENUM (
+    'healthcare_worker',
+    'patient'
+);
+
+-- User Roles Table
+CREATE TABLE public.user_roles (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    role public.user_role_enum NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- -- Enable RLS for user_roles
+-- ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+-- -- User roles policies
+-- CREATE POLICY "Users can view own role"
+--     ON public.user_roles FOR SELECT
+--     TO authenticated
+--     USING (user_id = auth.uid());
+
+-- CREATE POLICY "Users can update own role"
+--     ON public.user_roles FOR UPDATE
+--     TO authenticated
+--     USING (user_id = auth.uid());
+
+CREATE TRIGGER update_user_roles_updated_at
+    BEFORE UPDATE ON public.user_roles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
 -- Patient Sex ENUM
 CREATE TYPE public.patient_sex_enum AS ENUM (
     'Male',

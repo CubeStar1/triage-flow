@@ -1,4 +1,4 @@
-import { TriageData } from "@/app/api/triage/route";
+import type { TriageData } from '@/lib/fetchers/assessment';
 import { AlertTriangle, CheckCircle, ShieldAlert, Info, ListChecks, UserCheck, Microscope, HelpCircle, FileText as FileTextIcon, Activity, MessageSquareText, Brain } from 'lucide-react';
 import { PossibleDiagnosisItem } from "@/components/assesment-details/possible-diagnosis-item";
 import { Badge } from "@/components/ui/badge";
@@ -45,8 +45,7 @@ const recommendationStatusConfig = {
 };
 
 export function TriageAssessmentDetails({ triageData }: TriageAssessmentDetailsProps) {
-  const outcome = triageData.triageOutcome;
-  const statusCfg = recommendationStatusConfig[outcome.recommendationStatus] || recommendationStatusConfig.moderate;
+  const statusCfg = recommendationStatusConfig[triageData.recommendationStatus || 'moderate'];
 
   return (
     <ScrollArea className="h-[calc(100vh-15rem)]">
@@ -56,8 +55,8 @@ export function TriageAssessmentDetails({ triageData }: TriageAssessmentDetailsP
           title="Identified Concern" 
           icon={<Microscope size={18} />}
         >
-          <h4 className="font-semibold text-md mb-1 text-foreground dark:text-slate-100">{outcome.injuryType}</h4>
-          <p className="text-sm text-muted-foreground dark:text-slate-300 leading-relaxed">{outcome.description}</p>
+          <h4 className="font-semibold text-md mb-1 text-foreground dark:text-slate-100">{triageData.predictedInjuryLabel}</h4>
+          <p className="text-sm text-muted-foreground dark:text-slate-300 leading-relaxed">{triageData.injuryDescriptionSummary}</p>
         </InfoCard>
 
         <InfoCard 
@@ -67,38 +66,38 @@ export function TriageAssessmentDetails({ triageData }: TriageAssessmentDetailsP
           className={statusCfg.cardClassName}
         >
           <p className={`text-sm ${statusCfg.titleClassName} font-medium mb-1.5`}>
-            Severity Score: {outcome.severityScore}/5 
+            Severity Score: {triageData.severityScore}/5 
             <Badge 
               variant="outline" 
               className={`ml-2 ${statusCfg.badgeTextColor} ${statusCfg.badgeBorderColor} bg-transparent px-2 py-0.5 text-xs`}
             >
-              {outcome.recommendationStatus.toUpperCase()}
+              {(triageData.recommendationStatus || 'moderate').toUpperCase()}
             </Badge>
           </p>
-          <p className="text-sm text-muted-foreground dark:text-slate-300 mb-1"><strong>Reason:</strong> {outcome.severityReason}</p>
+          <p className="text-sm text-muted-foreground dark:text-slate-300 mb-1"><strong>Reason:</strong> {triageData.severityReason}</p>
           <p className="text-sm text-foreground dark:text-slate-200 font-medium leading-relaxed"><strong>Next Steps:</strong></p>
-          <p className="text-sm text-muted-foreground dark:text-slate-300 leading-relaxed">{outcome.triageRecommendation}</p>
+          <p className="text-sm text-muted-foreground dark:text-slate-300 leading-relaxed">{triageData.triageRecommendation}</p>
         </InfoCard>
 
-        {triageData.symptomsText && (
+        {triageData.symptomDescription && (
           <InfoCard 
             title="Symptoms Provided by Patient" 
             icon={<MessageSquareText size={18} />}
           >
             <p className="text-sm text-muted-foreground dark:text-slate-300 italic leading-relaxed">
-              &ldquo;{triageData.symptomsText}&rdquo;
+              &ldquo;{triageData.symptomDescription}&rdquo;
             </p>
           </InfoCard>
         )}
 
-        {outcome.topPossibleDiagnoses && outcome.topPossibleDiagnoses.length > 0 && (
+        {triageData.possibleDiagnoses && triageData.possibleDiagnoses.length > 0 && (
           <InfoCard 
             title="Possible Conditions" 
             icon={<Brain size={18} />}
             noContentPadding
             contentClassName="divide-y divide-border/70 dark:divide-border/50"
           >
-            {outcome.topPossibleDiagnoses.map((diag, index) => (
+            {triageData.possibleDiagnoses.map((diag, index) => (
               <PossibleDiagnosisItem key={index} diagnosis={diag} index={index} />
             ))}
           </InfoCard>

@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServer } from '@/lib/supabase/server';
-import type { AssessmentApiPayload } from '@/lib/fetchers/assessment';
+import type { CreateAssessmentPayload } from '@/lib/fetchers/assessment';
 
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as AssessmentApiPayload;
+    const body = await request.json() as CreateAssessmentPayload;
     
     // Initialize Supabase client
     const supabase = await createSupabaseServer();
 
     const {
       symptoms,
+      image,
+      imageFileName,
+      imageFileType,
       userId,
-      imageUrl,
-      imageStoragePath,
       patientName,
       patientAge,
       patientSex,
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
       preExistingConditions
     } = body;
 
-    if (!symptoms) {
+    if (!symptoms && !image) {
       return NextResponse.json(
         { error: 'At least symptoms or an image must be provided.' },
         { status: 400 }
@@ -43,7 +44,35 @@ export async function POST(request: Request) {
       );
     }
 
-    // Image upload is now handled on the client side
+    // Upload image to Supabase Storage if provided
+    let imageUrl, imageStoragePath;
+    if (image && imageFileName && imageFileType) {
+      const base64Data = image.split(',')[1]; // Remove data URL prefix
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('assessment-images')
+        .upload(
+          `${userId}/${new Date().toISOString()}-${imageFileName}`,
+          buffer,
+          { contentType: imageFileType }
+        );
+
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        return NextResponse.json(
+          { error: 'Failed to upload image.' },
+          { status: 500 }
+        );
+      }
+
+      imageStoragePath = data.path;
+      const { data: { publicUrl } } = supabase.storage
+        .from('assessment-images')
+        .getPublicUrl(imageStoragePath);
+      
+      imageUrl = publicUrl;
+    }
 
     // Create assessment in database
     const { data: assessment, error: dbError } = await supabase
@@ -52,6 +81,8 @@ export async function POST(request: Request) {
         {
           user_id: userId,
           symptom_description: symptoms,
+          image_file_name: imageFileName,
+          image_file_type: imageFileType,
           image_url: imageUrl,
           image_storage_path: imageStoragePath,
           patient_name: patientName,
@@ -65,7 +96,7 @@ export async function POST(request: Request) {
           known_allergies: knownAllergies,
           current_medications: currentMedications,
           recent_travel: recentTravel,
-          pre_existing_conditions: preExistingConditions
+          pre_existing_conditions: preExistingConditions,
         }
       ])
       .select()

@@ -45,62 +45,63 @@ export function ImageUploader({ imageFile, onImageChange }: ImageUploaderProps) 
   };
 
   return (
-    <div className="p-6 bg-card border border-border/70 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <div className="flex items-center mb-4">
-        <ImageIcon className="h-7 w-7 mr-3 text-purple-500" />
-        <h2 className="text-xl font-semibold text-card-foreground">Upload an Image (Optional)</h2>
+    <div className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-slate-50 via-white to-purple-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-purple-900/10 rounded-xl overflow-hidden">
+      <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center mb-2">
+          <ImageIcon className="h-6 w-6 mr-3 text-purple-500" />
+          <h2 className="text-xl font-bold bg-gradient-to-r from-slate-700 to-purple-700 bg-clip-text text-transparent dark:from-slate-200 dark:to-purple-300">Upload an Image </h2>
+        </div>
+        <p className="text-slate-600 dark:text-slate-300 text-sm">Add relevant photos of visible symptoms or medical documents.</p>
       </div>
-      <p className="mb-4 text-sm text-muted-foreground">
-        If you have a visual symptom (e.g., rash, wound, swelling), please upload an image.
-      </p>
-
-      {preview && imageFile ? (
-        <div className="mb-4 group relative">
-          <Image
-            src={preview}
-            alt="Image preview"
-            width={400}
-            height={300}
-            onLoad={() => URL.revokeObjectURL(preview)} // Clean up object URL after image loads
-            className="rounded-lg object-contain max-h-[300px] w-auto mx-auto border border-border shadow-md"
-          />
-          <Button
-            variant="destructive"
-            size="icon"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500/80 hover:bg-red-600/90 backdrop-blur-sm rounded-full h-8 w-8"
-            onClick={handleRemoveImage}
-            title="Remove image"
-          >
-            <XCircle size={20} />
-          </Button>
-          <div className="mt-2 text-center text-xs text-muted-foreground">
-            {imageFile.name} ({(imageFile.size / 1024).toFixed(1)} KB)
-            <CheckCircle className="h-4 w-4 inline-block ml-1 text-green-500" />
+      <div className="p-6">
+        {preview && imageFile ? (
+          <div className="mb-4 group relative">
+            <Image
+              src={preview}
+              alt="Image preview"
+              width={400}
+              height={300}
+              onLoad={() => URL.revokeObjectURL(preview)} // Clean up object URL after image loads
+              className="rounded-lg object-contain max-h-[300px] w-auto mx-auto border border-slate-200/50 dark:border-slate-700/50 shadow-md"
+            />
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500/80 hover:bg-red-600/90 backdrop-blur-sm rounded-full h-8 w-8"
+              onClick={handleRemoveImage}
+              title="Remove image"
+            >
+              <XCircle size={20} />
+            </Button>
+            <div className="mt-2 text-center text-xs text-muted-foreground">
+              {imageFile.name} ({(imageFile.size / 1024).toFixed(1)} KB)
+              <CheckCircle className="h-4 w-4 inline-block ml-1 text-emerald-500" />
+            </div>
           </div>
-        </div>
-      ) : (
-        <div
-          {...getRootProps()}
-          className={cn(
-            "flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200 ease-in-out",
-            "border-border/80 hover:border-purple-400",
-            isDragActive && "border-purple-500 bg-purple-500/10",
-            isDragAccept && "border-green-500 bg-green-500/10",
-            isDragReject && "border-red-500 bg-red-500/10"
-          )}
-        >
-          <input {...getInputProps()} />
-          <UploadCloud className={`h-12 w-12 mb-3 ${isDragActive ? 'text-purple-600' : 'text-muted-foreground/70'}`} />
-          {isDragActive ? (
-            <p className="text-purple-600 font-semibold">Drop the image here ...</p>
-          ) : (
-            <p className="text-muted-foreground text-center">
-              Drag & drop an image here, or <span className="font-semibold text-purple-500">click to select</span>
-            </p>
-          )}
-          <p className="mt-2 text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
-        </div>
-      )}
+        ) : (
+          <div
+            {...getRootProps()}
+            className={cn(
+              "flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200 ease-in-out",
+              "border-slate-200/70 dark:border-slate-700/70 hover:border-purple-400",
+              isDragActive && "border-purple-500 bg-purple-500/5",
+              isDragAccept && "border-emerald-500 bg-emerald-500/5",
+              isDragReject && "border-rose-500 bg-rose-500/5"
+            )}
+          >
+            <input {...getInputProps()} />
+            <UploadCloud className={`h-12 w-12 mb-3 ${isDragActive ? 'text-purple-500' : 'text-slate-400'}`} />
+            {isDragActive ? (
+              <p className="text-purple-600 font-semibold">Drop the image here ...</p>
+            ) : (
+              <p className="text-slate-600 dark:text-slate-300 text-center">
+                Drag & drop an image here, or <span className="font-semibold text-purple-500">click to select</span>
+              </p>
+            )}
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">PNG, JPG, GIF up to 5MB</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

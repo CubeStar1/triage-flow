@@ -6,7 +6,7 @@ import { XIcon, ZoomInIcon, ZoomOutIcon, ExpandIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PatientImageViewerProps {
-  imageUrl: string;
+  imageUrl?: string;
   altText?: string;
   caption?: string;
 }
@@ -40,7 +40,7 @@ export function PatientImageViewer({ imageUrl, altText = "Patient image", captio
               />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-slate-500 dark:text-slate-400">Loading patient image...</p>
+                <p className="text-slate-500 dark:text-slate-400">No image available</p>
               </div>
             )}
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-all duration-300 opacity-0 group-hover:opacity-100">
@@ -60,7 +60,7 @@ export function PatientImageViewer({ imageUrl, altText = "Patient image", captio
               />
             </div>
           ) : (
-            <p className="text-center p-10 text-muted-foreground">Image not available.</p>
+            <p className="text-center p-10 text-muted-foreground">No image available.</p>
           )}
           <DialogFooter className="mt-2 sm:mt-4">
               <DialogClose asChild>

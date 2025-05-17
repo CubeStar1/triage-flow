@@ -23,7 +23,8 @@ import {
     User,
     Home,
     FilePlus,
-    Mic
+    Mic,
+    Video
 } from "lucide-react"
 
 type IconType = {
@@ -53,7 +54,8 @@ const Icons: IconType = {
     user: User,
     home: Home,
     filePlus: FilePlus,
-    mic: Mic
+    mic: Mic,
+    video: Video,
 }
 
 export default Icons;

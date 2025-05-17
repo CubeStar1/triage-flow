@@ -14,20 +14,20 @@ interface MedicalHistorySectionProps {
 
 export function MedicalHistorySection({ form }: MedicalHistorySectionProps) {
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <CardHeader>
-        <div className="flex items-center"> <Droplets className="h-6 w-6 mr-3 text-primary" />
-          <CardTitle className="text-2xl">Medical History & Lifestyle</CardTitle>
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-900 dark:via-emerald-900/10 dark:to-slate-900">
+      <CardHeader className="pb-2">
+        <div className="flex items-center"> <Droplets className="h-6 w-6 mr-3 text-emerald-500" />
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Medical History & Lifestyle</CardTitle>
         </div>
-        <CardDescription>This information can help provide a more accurate assessment.</CardDescription>
+        <CardDescription className="text-slate-600 dark:text-slate-300">This information can help provide a more accurate assessment.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/50 dark:bg-slate-900/50 rounded-b-xl">
         <FormField 
           control={form.control} 
           name="knownAllergies" 
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium flex items-center"><AlertTriangle size={16} className="mr-2 opacity-70"/>Known Allergies (Optional)</FormLabel>
+              <FormLabel className="font-medium flex items-center"><AlertTriangle size={16} className="mr-2 text-emerald-500"/>Known Allergies (Optional)</FormLabel>
               <FormControl><Textarea placeholder="E.g., Penicillin, peanuts" {...field} rows={3} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -38,7 +38,7 @@ export function MedicalHistorySection({ form }: MedicalHistorySectionProps) {
           name="currentMedications" 
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium flex items-center"><Pill size={16} className="mr-2 opacity-70"/>Current Medications (Optional)</FormLabel>
+              <FormLabel className="font-medium flex items-center"><Pill size={16} className="mr-2 text-emerald-500"/>Current Medications (Optional)</FormLabel>
               <FormControl><Textarea placeholder="E.g., Metformin 500mg, Aspirin 81mg" {...field} rows={3} /></FormControl>
               <FormMessage />
             </FormItem>
