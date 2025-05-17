@@ -1,0 +1,17 @@
+README.md
+pyproject.toml
+setup.py
+models/__init__.py
+models/agent.py
+models/json_rpc.py
+models/request.py
+models/task.py
+server/__init__.py
+server/server.py
+server/task_manager.py
+tests/test_agents.py
+version_3_multi_agent.egg-info/PKG-INFO
+version_3_multi_agent.egg-info/SOURCES.txt
+version_3_multi_agent.egg-info/dependency_links.txt
+version_3_multi_agent.egg-info/requires.txt
+version_3_multi_agent.egg-info/top_level.txt

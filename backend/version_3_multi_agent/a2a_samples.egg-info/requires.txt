@@ -1,0 +1,15 @@
+google-cloud-aiplatform>=1.36.0
+google-generativeai>=0.3.0
+google-cloud-core>=2.3.3
+google-api-core>=2.15.0
+google-auth>=2.23.0
+google-cloud-storage>=2.10.0
+click>=8.1.7
+httpx>=0.25.0
+prometheus-client>=0.17.1
+pydantic>=2.4.2
+python-json-logger>=2.0.7
+python-multipart>=0.0.6
+starlette>=0.27.0
+structlog>=23.1.0
+uvicorn>=0.24.0
