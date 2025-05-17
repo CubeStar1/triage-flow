@@ -1,5 +1,9 @@
+# Set environment variable to handle OpenMP runtime conflict
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 # =============================================================================
-# agents/description_fetcher/__main__.py
+# agents/agent2/__main__.py
 # =============================================================================
 # Purpose:
 # This is the main script that starts your DescriptionFetcher server.
@@ -25,11 +29,15 @@ from models.agent import AgentCard, AgentCapabilities, AgentSkill
 # Task manager and agent logic
 from agents.agent1.task_manager import DescriptionFetcherTaskManager
 from agents.agent1.agent import DescriptorAgent
-from server.task_manager import TaskManager
+from agents.agent2.agent import TriageAgent
+from agents.agent2.task_manager import TriageTaskManager
 
 # CLI and logging support
 import click           # For creating a clean command-line interface
 import logging         # For logging errors and info to the console
+import asyncio
+import json
+import requests
 
 # -----------------------------------------------------------------------------
 # Setup logging to print info to the console
@@ -39,46 +47,49 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------------------
-# Main Entry Function – Configurable via CLI
+# Main Entry Function
 # -----------------------------------------------------------------------------
 
 @click.command()
 @click.option("--host", default="localhost", help="Host to bind the server to")
-@click.option("--port", default=8001, help="Port number for the server")
+@click.option("--port", default=8000, help="Port number for the server")
 def main(host, port):
-    """Start the medical description agent server"""
+    """Start the combined medical agents server"""
     
     # Define agent capabilities
     capabilities = AgentCapabilities(streaming=False)
 
-    # Define the medical description skill
+    # Define the medical triage skill
     skill = AgentSkill(
-        id="medical_descriptions",
-        name="Medical Description Provider",
-        description="Provides comprehensive medical condition descriptions and explanations",
-        tags=["medical", "health", "descriptions"],
+        id="medical_triage",
+        name="Medical Triage Provider",
+        description="Provides comprehensive medical triage assessment and recommendations",
+        tags=["medical", "health", "triage"],
         examples=[
-            "What is Pneumonia?",
-            "Tell me about Bronchitis",
-            "Explain the symptoms of Asthma"
+            "Assess symptoms of fever and cough",
+            "Evaluate skin rash severity",
+            "Determine urgency of breathing difficulty"
         ],
-        inputModes=DescriptorAgent.SUPPORTED_CONTENT_TYPES,
-        outputModes=DescriptorAgent.SUPPORTED_CONTENT_TYPES
+        inputModes=["text", "text/plain"],
+        outputModes=["text", "text/plain"]
     )
 
     # Create agent card
     agent_card = AgentCard(
-        name="MedicalDescriptionAgent",
-        description="An AI agent that provides detailed medical condition descriptions and explanations",
+        name="MedicalTriageAgent",
+        description="An AI agent that provides medical triage assessment and recommendations",
         url=f"http://{host}:{port}/",
         version="1.0.0",
         capabilities=capabilities,
         skills=[skill]
     )
 
-    # Initialize the agent and task manager
-    agent = DescriptorAgent()
-    task_manager = DescriptionFetcherTaskManager(agent=agent)
+    # Initialize both agents
+    agent1 = DescriptorAgent()
+    agent2 = TriageAgent()
+
+    # Initialize task manager with both agents
+    task_manager = TriageTaskManager(agent=agent2, agent1=agent1)
 
     # Start the A2A server
     server = A2AServer(
@@ -88,7 +99,7 @@ def main(host, port):
         task_manager=task_manager
     )
 
-    logger.info(f"Starting Medical Description Agent server on {host}:{port}")
+    logger.info(f"Starting Combined Medical Agents server on {host}:{port}")
     server.start()
 
 # -----------------------------------------------------------------------------
