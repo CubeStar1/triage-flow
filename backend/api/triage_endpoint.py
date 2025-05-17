@@ -293,16 +293,16 @@ async def get_triage_assessment(
                     
                     # Determine recommendation status based on severity
                     if severity_score >= 4:
-                        recommendation_status = "emergency"
+                        recommendation_status = "critical"
                         triage_recommendation = f"Seek immediate medical attention for {condition_name}. {condition_description}"
                     elif severity_score >= 3:
-                        recommendation_status = "urgent"
+                        recommendation_status = "severe"
                         triage_recommendation = f"Seek urgent medical care for {condition_name}. {condition_description}"
                     elif severity_score >= 2:
-                        recommendation_status = "routine"
+                        recommendation_status = "moderate"
                         triage_recommendation = f"Schedule a routine appointment for {condition_name}. {condition_description}"
                     else:
-                        recommendation_status = "self_care"
+                        recommendation_status = "mild"
                         triage_recommendation = f"Monitor {condition_name} and practice self-care. {condition_description}"
                     
                     # Update triage data

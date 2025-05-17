@@ -90,13 +90,5 @@
   {
     "id": "Warts Molluscum and other Viral Infections",
     "data": "Cutaneous viral infections include warts (caused by human papillomavirus), molluscum contagiosum (a poxvirus), and other viral exanthems. Warts can be common, plantar, or genital and present as rough, hyperkeratotic papules. Molluscum appears as dome-shaped, umbilicated papules, often in children or immunocompromised adults. Diagnosis is clinical. Treatment options include cryotherapy, salicylic acid, curettage, and topical agents like cantharidin or imiquimod. Most cases resolve spontaneously, but treatment may be desired for cosmetic reasons or to prevent spread. Education on hygiene and avoidance of skin trauma is key to reducing transmission."
-  },
-  {
-    "id": "24",
-    "data": "{\"condition\": \"Warts Molluscum and other Viral Infections\", \"overview\": \"Skin condition identified from image analysis with 64.61% confidence\", \"symptoms\": \"Symptoms to be determined based on patient description\", \"treatment\": \"Treatment recommendations to be provided by healthcare professional\", \"patient_explanation\": \"This appears to be Warts Molluscum and other Viral Infections based on the image analysis\"}"
-  },
-  {
-    "id": "25",
-    "data": "{\"condition\": \"Warts Molluscum and other Viral Infections\", \"overview\": \"Skin condition identified from image analysis with 64.61% confidence\", \"symptoms\": \"Symptoms to be determined based on patient description\", \"treatment\": \"Treatment recommendations to be provided by healthcare professional\", \"patient_explanation\": \"This appears to be Warts Molluscum and other Viral Infections based on the image analysis\"}"
   }
 ]
