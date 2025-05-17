@@ -256,6 +256,21 @@ async def get_triage_assessment(
                             # Log successful diagnosis creation
                             logger.info(f"Created new diagnosis: {condition_name} with confidence {condition['score']}")
                             
+                            # Save diagnosis to database
+                            try:
+                                diagnosis_data = {
+                                    'id': str(diagnosis_id),
+                                    'assessment_id': str(assessment_uuid),
+                                    'diagnosis_name': condition_name,
+                                    'confidence_score': float(condition['score']),
+                                    'description': condition_description,
+                                    'created_at': datetime.now().isoformat()
+                                }
+                                supabase.table("possible_diagnoses").insert(diagnosis_data).execute()
+                                logger.info(f"Saved diagnosis {condition_name} to database")
+                            except Exception as e:
+                                logger.error(f"Failed to save diagnosis {condition_name} to database: {str(e)}")
+                            
                         except (ValueError, KeyError) as e:
                             logger.warning(f"Skipping invalid diagnosis from agent: {e}")
                             continue
