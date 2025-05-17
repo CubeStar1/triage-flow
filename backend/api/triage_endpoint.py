@@ -216,6 +216,8 @@ async def get_triage_assessment(
         
         # Update triage data with agent's analysis
         if agent_response:
+            update_data = {}
+            
             # Update image analysis results if available
             if agent_response.get('image_analysis'):
                 image_analysis = agent_response['image_analysis']
@@ -223,6 +225,10 @@ async def get_triage_assessment(
                     top_prediction = image_analysis[0]
                     triage_data.predicted_injury_label = top_prediction['class']
                     triage_data.injury_description_summary = top_prediction['description']
+                    update_data.update({
+                        'predicted_injury_label': top_prediction['class'],
+                        'injury_description_summary': top_prediction['description']
+                    })
             
             # Update text analysis results if available
             if agent_response.get('relevant_conditions'):
@@ -260,6 +266,51 @@ async def get_triage_assessment(
                     
                     # Log the final number of diagnoses
                     logger.info(f"Total diagnoses after merge: {len(triage_data.possible_diagnoses)}")
+                    
+                    # Get the top condition for severity assessment
+                    top_condition = relevant_conditions[0]
+                    condition_name = top_condition['data'].split(':')[0].strip()
+                    condition_description = top_condition['data'].split(':')[1].strip() if ':' in top_condition['data'] else None
+                    
+                    # Determine severity based on confidence and condition type
+                    confidence = float(top_condition['score'])
+                    severity_score = min(5, max(1, int(confidence * 5)))  # Scale confidence to 1-5
+                    
+                    # Determine recommendation status based on severity
+                    if severity_score >= 4:
+                        recommendation_status = "emergency"
+                        triage_recommendation = f"Seek immediate medical attention for {condition_name}. {condition_description}"
+                    elif severity_score >= 3:
+                        recommendation_status = "urgent"
+                        triage_recommendation = f"Seek urgent medical care for {condition_name}. {condition_description}"
+                    elif severity_score >= 2:
+                        recommendation_status = "routine"
+                        triage_recommendation = f"Schedule a routine appointment for {condition_name}. {condition_description}"
+                    else:
+                        recommendation_status = "self_care"
+                        triage_recommendation = f"Monitor {condition_name} and practice self-care. {condition_description}"
+                    
+                    # Update triage data
+                    triage_data.severity_score = severity_score
+                    triage_data.severity_reason = f"Based on analysis of {condition_name} with {confidence:.2%} confidence"
+                    triage_data.recommendation_status = recommendation_status
+                    triage_data.triage_recommendation = triage_recommendation
+                    
+                    # Add to update data
+                    update_data.update({
+                        'severity_score': severity_score,
+                        'severity_reason': f"Based on analysis of {condition_name} with {confidence:.2%} confidence",
+                        'recommendation_status': recommendation_status,
+                        'triage_recommendation': triage_recommendation
+                    })
+            
+            # Update the database with the new analysis results
+            if update_data:
+                try:
+                    update_response = supabase.table("assessments").update(update_data).eq("id", assessment_id).execute()
+                    logger.info(f"Updated assessment {assessment_id} with analysis results")
+                except Exception as e:
+                    logger.error(f"Failed to update assessment {assessment_id}: {str(e)}")
         
         return triage_data
         
