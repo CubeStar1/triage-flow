@@ -10,13 +10,15 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. Install the package:
+2. Install the package 
 ```bash
+cd ../triage-flow/backend/version_3_multi_agent
 pip install -e .
 ```
 
 3. Run requirements.txt compulsorily inside the same venv after this:
 ```bash
+cd ../triage-flow/backend/
 pip install -r requirements.txt
 ```
 
