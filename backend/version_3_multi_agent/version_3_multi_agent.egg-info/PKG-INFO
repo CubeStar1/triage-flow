@@ -1,0 +1,81 @@
+Metadata-Version: 2.4
+Name: version_3_multi_agent
+Version: 0.1.0
+Summary: version_3_multi_agent
+Home-page: https://github.com/yourusername/a2a_samples
+Author: Your Name
+Author-email: your.email@example.com
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: asyncclick>=8.1.8
+Requires-Dist: click>=8.1.8
+Requires-Dist: fastapi>=0.115.12
+Requires-Dist: google-adk>=0.2.0
+Requires-Dist: google-genai>=1.11.0
+Requires-Dist: httpx>=0.28.1
+Requires-Dist: httpx-sse>=0.4.0
+Requires-Dist: pydantic>=2.11.4
+Requires-Dist: python-dotenv>=1.1.0
+Requires-Dist: starlette>=0.46.2
+Requires-Dist: uvicorn>=0.34.2
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: requires-python
+
+# A2A Samples with Google ADK Integration
+
+A multi-agent system for processing and analyzing medical images, providing automated triage reports with severity assessments and condition descriptions.
+
+## Installation
+
+1. Create a virtual environment (recommended):
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. Install the package:
+```bash
+pip install -e .
+```
+
+## Usage
+
+Start the agents in separate terminals:
+
+1. Start the DescriptionFetcher:
+```bash
+python -m agents.description_fetcher
+```
+
+2. Start the TriageAnalyst:
+```bash
+python -m agents.triage_analyst
+```
+
+3. Start the TriageOrchestrator:
+```bash
+python -m agents.triage_orchestrator
+```
+
+The agents will be available at:
+- TriageOrchestrator: http://localhost:8000
+- DescriptionFetcher: http://localhost:8001
+- TriageAnalyst: http://localhost:8002
+
+## Configuration
+
+Make sure to set up your Google Cloud credentials:
+1. Create a service account and download the JSON key file
+2. Set the GOOGLE_APPLICATION_CREDENTIALS environment variable:
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
+```
+
+## Development
+
+To install development dependencies:
+```bash
+pip install -e ".[dev]"
+```

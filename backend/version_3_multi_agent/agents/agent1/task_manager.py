@@ -18,6 +18,7 @@
 import logging  # Standard Python module for logging debug/info messages
 import time    # For tracking uptime and timing
 from typing import List, Dict, Any  # Type hints for better code clarity
+import json  # For JSON operations
 
 # 🔁 Import the shared in-memory task manager from the server
 from server.task_manager import InMemoryTaskManager
@@ -76,6 +77,21 @@ class DescriptionFetcherTaskManager(InMemoryTaskManager):
         """
         return request.params.message.parts[0].text
 
+    def _is_knowledge_base_update(self, request: SendTaskRequest) -> bool:
+        """Check if the request is for updating the knowledge base."""
+        try:
+            data = json.loads(request.params.message.parts[0].text)
+            # Check if it's a reload command
+            if isinstance(data, dict) and data.get("command") == "reload_knowledge_base":
+                return True
+            # Check if it's a regular knowledge base update
+            return isinstance(data, dict) and all(
+                isinstance(v, dict) and all(k in v for k in ['overview', 'symptoms', 'treatment'])
+                for v in data.values()
+            )
+        except (json.JSONDecodeError, AttributeError):
+            return False
+
     # -------------------------------------------------------------------------
     # 🧠 Main logic to handle and complete a task
     # -------------------------------------------------------------------------
@@ -85,10 +101,11 @@ class DescriptionFetcherTaskManager(InMemoryTaskManager):
 
         It does the following:
         1. Save the task into memory (or update it)
-        2. Ask the Gemini agent for medical descriptions
-        3. Format that reply as a message
-        4. Save the agent's reply into the task history
-        5. Return the updated task to the caller
+        2. If it's a knowledge base update, update the agent's knowledge
+        3. Otherwise, ask the Gemini agent for medical descriptions
+        4. Format that reply as a message
+        5. Save the agent's reply into the task history
+        6. Return the updated task to the caller
         """
 
         logger.info(f"Processing new task: {request.params.id}")
@@ -98,22 +115,30 @@ class DescriptionFetcherTaskManager(InMemoryTaskManager):
             # Step 1: Save the task using the base class helper
             task = await self.upsert_task(request.params)
 
-            # Step 2: Get what the user asked
-            query = self._get_user_query(request)
-
-            # Step 3: Ask the Gemini agent to respond (synchronous call here)
-            result_text = self.agent.invoke(query, request.params.sessionId)
+            # Step 2: Check if this is a knowledge base update
+            if self._is_knowledge_base_update(request):
+                data = json.loads(request.params.message.parts[0].text)
+                if isinstance(data, dict) and data.get("command") == "reload_knowledge_base":
+                    self.agent.reload_knowledge_base()
+                    result_text = "Knowledge base reloaded successfully from RAG data file."
+                else:
+                    self.agent.update_knowledge_base(data)
+                    result_text = "Knowledge base updated successfully."
+            else:
+                # Step 3: Get what the user asked and get response
+                query = self._get_user_query(request)
+                result_text = self.agent.invoke(query, request.params.sessionId)
 
             # Step 4: Turn the agent's response into a Message object
             agent_message = Message(
-                role="agent",                       # The role is "agent" not "user"
-                parts=[TextPart(text=result_text)]  # The reply text is stored inside a TextPart
+                role="agent",
+                parts=[TextPart(text=result_text)]
             )
 
             # Step 5: Update the task state and add the message to history
-            async with self.lock:                   # Lock access to avoid concurrent writes
-                task.status = TaskStatus(state=TaskState.COMPLETED)  # Mark task as done
-                task.history.append(agent_message)  # Append the agent's message to the task history
+            async with self.lock:
+                task.status = TaskStatus(state=TaskState.COMPLETED)
+                task.history.append(agent_message)
 
             # Step 6: Return a structured response back to the A2A client
             return SendTaskResponse(id=request.id, result=task)

@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 venv
 .vscode
+triage-flow/backend/version_3_multi_agent/a2a_samples.egg-info
+triage-flow/backend/version_3_multi_agent/version_3_multi_agent.egg-info
