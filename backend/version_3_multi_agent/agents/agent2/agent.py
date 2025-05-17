@@ -35,7 +35,11 @@ from dotenv import load_dotenv
 load_dotenv()  # Load variables like GOOGLE_API_KEY into the system
 
 # Configure Google API
-os.environ["GOOGLE_API_KEY"] = "AIzaSyBqCgCIjax_7eg7iCuY7onZx8zXV9-IWhg"
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY not found in environment variables")
+
+os.environ["GOOGLE_API_KEY"] = api_key
 import google.generativeai as genai
 
 import numpy as np
