@@ -1,6 +1,6 @@
-**Project: Simple Local RAG with FAISS and SBERT**
+**Simple Local RAG with FAISS and SBERT**
 
-This project demonstrates a minimal Retrieval-Augmented Generation (RAG) setup running entirely locally using FAISS and a Sentence-Transformer model. The core script is contained in `FAISS.py`, which:
+This part demonstrates a minimal Retrieval-Augmented Generation (RAG) setup running entirely locally using FAISS and a Sentence-Transformer model. The core script is contained in `FAISS.py`, which:
 
 1.  Loads a JSON knowledge base (`ragData.json`) of medical image class descriptions.
 
