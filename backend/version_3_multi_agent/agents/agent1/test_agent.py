@@ -14,17 +14,14 @@ class TestDescriptorAgent(unittest.TestCase):
         """Set up test environment before each test"""
         self.agent = DescriptorAgent()
         self.test_session_id = "test_session_123"
+        self.test_image_path = "C:\\Users\\pradh\\Documents\\Assets\\Acne and Rosacea Photos\\07AcnePittedScars.jpg"
         
         # Create a temporary test image
         self.temp_dir = tempfile.mkdtemp()
-        self.test_image_path = "C:\\Users\\pradh\\Documents\\Aventus3\\07Acne081101.jpg"
 
     def tearDown(self):
         """Clean up after each test"""
-        # Remove temporary test image
-        if os.path.exists(self.test_image_path):
-            os.remove(self.test_image_path)
-        os.rmdir(self.temp_dir)
+        # (Removed auto-deletion of images.)
 
     def _create_test_image(self):
         """Create a simple test image for classification"""
