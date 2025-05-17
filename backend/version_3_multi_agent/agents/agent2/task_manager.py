@@ -17,16 +17,17 @@
 
 import logging  # Standard Python module for logging debug/info messages
 import time    # For tracking uptime and timing
-from typing import List, Dict, Any  # Type hints for better code clarity
+from typing import List, Dict, Any, Optional  # Type hints for better code clarity
+import json
 
 # 🔁 Import the shared in-memory task manager from the server
-from server.task_manager import InMemoryTaskManager
+from server.task_manager import InMemoryTaskManager, TaskManager
 
 # 🤖 Import the actual agent we're using (Gemini-powered DescriptionFetcher)
 from agents.agent1.agent import DescriptorAgent
 
 # 📦 Import data models used to structure and return tasks
-from models.request import SendTaskRequest, SendTaskResponse
+from models.request import SendTaskRequest, SendTaskResponse, GetTaskRequest, GetTaskResponse
 from models.task import Message, Task, TextPart, TaskStatus, TaskState
 
 
@@ -143,4 +144,59 @@ class DescriptionFetcherTaskManager(InMemoryTaskManager):
             return {
                 "status": "unhealthy",
                 "error": str(e)
-            } 
+            }
+
+class TriageTaskManager(TaskManager):
+    def __init__(self, agent, agent1: Optional[DescriptorAgent] = None):
+        super().__init__()
+        self.agent = agent
+        self.agent1 = agent1
+        self.tasks: Dict[str, Task] = {}
+
+    async def create_task(self, task_data: Dict[str, Any]) -> Task:
+        """Create a new task and process it through both agents"""
+        task_id = task_data.get("id", "task_" + str(len(self.tasks)))
+        task = Task(id=task_id, status=TaskStatus(state=TaskState.SUBMITTED), history=[])
+        self.tasks[task_id] = task
+
+        try:
+            # First, get description from Agent 1
+            if self.agent1:
+                agent1_response = self.agent1.invoke(
+                    query=json.dumps(task_data),
+                    session_id=task_id
+                )
+                # Use Agent 1's response as input for Agent 2
+                task_data["description"] = agent1_response
+
+            # Then process with Agent 2
+            response = await self.agent.invoke(
+                query=json.dumps(task_data),
+                session_id=task_id
+            )
+
+            task.status = TaskStatus(state=TaskState.COMPLETED)
+            task.result = response
+            return task
+
+        except Exception as e:
+            logger.error(f"Error processing task {task_id}: {str(e)}")
+            task.status = TaskStatus(state=TaskState.FAILED)
+            task.error = str(e)
+            return task
+
+    async def get_task(self, task_id: str) -> Optional[Task]:
+        """Get task status and result"""
+        return self.tasks.get(task_id)
+
+    async def list_tasks(self) -> Dict[str, Task]:
+        """List all tasks"""
+        return self.tasks
+
+    async def on_send_task(self, request: SendTaskRequest) -> SendTaskResponse:
+        task = await self.create_task(request.params.dict())
+        return SendTaskResponse(id=request.id, result=task)
+
+    async def on_get_task(self, request: GetTaskRequest) -> GetTaskResponse:
+        task = await self.get_task(request.params.id)
+        return GetTaskResponse(id=request.id, result=task) 

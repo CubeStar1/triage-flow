@@ -32,15 +32,18 @@ from google.genai import types
 
 # 🔐 Load environment variables (like API keys) from a `.env` file
 from dotenv import load_dotenv
-load_dotenv()  # Load variables like GOOGLE_API_KEY into the system
+load_dotenv()  # Load variables from .env file
 
-# Configure Google API
+# Get API key from environment variable
 api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
     raise ValueError("GOOGLE_API_KEY not found in environment variables")
 
 os.environ["GOOGLE_API_KEY"] = api_key
+
 import google.generativeai as genai
+from google.generativeai.generative_models import GenerativeModel
+from google.generativeai.client import configure
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -183,3 +186,51 @@ class DescriptorAgent:
             "is_task_complete": True,
             "content": response
         }
+
+class TriageAgent:
+    """Agent that performs medical triage assessment"""
+    
+    SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
+
+    def __init__(self):
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY not found in environment variables")
+        os.environ["GOOGLE_API_KEY"] = api_key
+        configure(api_key=api_key)
+        self.model = GenerativeModel('gemini-1.5-flash-latest')
+
+    async def invoke(self, query: str, session_id: str) -> str:
+        """Process a medical query and return a structured triage assessment"""
+        prompt = f"""Based on the following medical description, provide a comprehensive triage assessment:
+
+{query}
+
+Please provide a structured response with the following sections:
+
+1. SEVERITY ASSESSMENT (1-5)
+   - Level: [1-5]
+   - Justification: [Brief explanation of severity rating]
+
+2. POTENTIAL DIAGNOSES
+   - Primary Diagnosis: [Most likely condition]
+     * Confidence: [Percentage]
+     * Supporting Factors: [Key symptoms/indicators]
+   - Secondary Diagnoses: [Other possible conditions]
+     * Confidence: [Percentage]
+     * Supporting Factors: [Key symptoms/indicators]
+
+3. RECOMMENDATIONS
+   - Urgency Level: [ER/Urgent Care/Primary Care/Home Care]
+   - Treatment Guidance: [Immediate steps and ongoing care]
+   - First Aid Instructions: [If applicable]
+
+4. FOLLOW-UP
+   - Timeline: [When to seek medical attention]
+   - Warning Signs: [Red flags to watch for]
+   - Prevention: [If applicable]
+
+Format the response in a clear, structured manner with appropriate headers and bullet points."""
+
+        response = await self.model.generate_content_async(prompt)
+        return response.text
