@@ -6,7 +6,7 @@ import os
 
 # Load the pre-trained ResNet101 model
 try:
-    model = load_model('C:\\Users\\pradh\\Downloads\\resnet101.h5')
+    model = load_model('C:\\Users\\pradh\\Documents\\Aventus3\\resnet152.h5')
 except Exception as e:
     print(f"Error loading the model: {e}")
     model = None
@@ -52,7 +52,7 @@ def inference(img_path, target_size=(224, 224)):
 
 if __name__ == '__main__':
     # Path to a sample image from your Dermnet dataset
-    dermnet_image_path ="C:/Users/pradh/Downloads/07Acne081101.jpg"
+    dermnet_image_path ="C:\\Users\\pradh\\Documents\\Aventus3\\07Acne081101.jpg"
     # Replace 'path/to/your/dermnet/image.jpg' with the actual path to an image
 
     # If you have a list of class names corresponding to the order
