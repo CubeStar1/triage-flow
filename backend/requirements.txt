@@ -1,4 +1,4 @@
-ngoogle-adk
+google-adk
 tensorflow
 faiss-cpu
 fastapi
