@@ -16,10 +16,8 @@ import logging
 sys.path.append(str(Path(__file__).parent.parent / "version_3_multi_agent"))
 from agents.agent1.agent import DescriptorAgent
 
-# Load environment variables
 load_dotenv()
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -30,10 +28,8 @@ def parse_list_field(value: Optional[str]) -> Optional[List[str]]:
     if value == "None" or value == "":
         return []
     try:
-        # Try to parse as JSON first
         return json.loads(value)
     except json.JSONDecodeError:
-        # If not JSON, split by comma and clean up
         return [item.strip() for item in value.split(",") if item.strip()]
 
 def parse_uuid(value: Any) -> UUID:
@@ -52,16 +48,14 @@ def parse_datetime(value: str) -> datetime:
     except ValueError as e:
         raise ValueError(f"Invalid datetime format: {value}") from e
 
-# Initialize FastAPI app with better documentation
 app = FastAPI(
     title="Triage API",
     description="API for medical triage assessment and diagnosis",
     version="1.0.0",
-    docs_url="/docs",  # Swagger UI
-    redoc_url="/redoc"  # ReDoc UI
+    docs_url="/docs",  
+    redoc_url="/redoc"  
 )
 
-# Initialize Supabase client
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 
@@ -70,7 +64,6 @@ if not supabase_url or not supabase_key:
 
 supabase: Client = create_client(supabase_url, supabase_key)
 
-# Initialize Agent 1
 agent = DescriptorAgent()
 
 def get_supabase_client() -> Client:
@@ -127,13 +120,11 @@ async def get_triage_assessment(
         HTTPException: If the assessment is not found or there's an error processing it
     """
     try:
-        # Validate assessment_id format
         try:
             assessment_uuid = parse_uuid(assessment_id)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-        # Fetch assessment data from Supabase
         response = supabase.table("assessments").select("*").eq("id", assessment_id).execute()
         
         if not response.data:
@@ -141,11 +132,9 @@ async def get_triage_assessment(
             
         assessment_data = response.data[0]
         
-        # Fetch possible diagnoses if they exist
         diagnoses_response = supabase.table("possible_diagnoses").select("*").eq("assessment_id", assessment_id).execute()
         possible_diagnoses = diagnoses_response.data if diagnoses_response.data else []
         
-        # Convert possible diagnoses to the correct format
         diagnoses = []
         for d in possible_diagnoses:
             try:
@@ -162,13 +151,11 @@ async def get_triage_assessment(
                 logger.warning(f"Skipping invalid diagnosis data: {e}")
                 continue
         
-        # Parse list fields
         affected_body_parts = parse_list_field(assessment_data.get("affected_body_parts"))
         known_allergies = parse_list_field(assessment_data.get("known_allergies"))
         current_medications = parse_list_field(assessment_data.get("current_medications"))
         pre_existing_conditions = parse_list_field(assessment_data.get("pre_existing_conditions"))
         
-        # Create TriageData object with proper type conversion
         try:
             triage_data = TriageData(
                 id=parse_uuid(assessment_data["id"]),
@@ -204,44 +191,35 @@ async def get_triage_assessment(
             logger.error(f"Validation error for assessment {assessment_id}: {str(e)}")
             raise HTTPException(status_code=422, detail=str(e))
         
-        # Use Agent 1 to analyze both symptoms and image if available
         agent_response = agent.invoke(
             query=triage_data.symptom_description,
             session_id=assessment_id,
             image_url=triage_data.image_url
         )
         
-        # Log the analysis for debugging
         logger.info(f"Agent analysis for assessment {assessment_id}: {agent_response}")
         
-        # Update triage data with agent's analysis
         if agent_response:
             update_data = {}
             
-            # Update image analysis results if available
             if agent_response.get('image_analysis'):
                 image_analysis = agent_response['image_analysis']
                 if image_analysis:
-                    # Get the top prediction for assessment table
                     top_prediction = image_analysis[0]
                     predicted_label = top_prediction['class']
                     confidence = float(top_prediction['confidence'])
 
-                    # Use the top FAISS result for the summary if available
                     summary = None
                     if agent_response.get('relevant_conditions') and agent_response['relevant_conditions']:
                         summary = agent_response['relevant_conditions'][0]['data']
                     else:
                         summary = top_prediction['description']
 
-                    # Update triage data with top prediction and summary
                     triage_data.predicted_injury_label = predicted_label
                     triage_data.injury_description_summary = summary
 
-                    # Determine severity based on image analysis confidence
-                    severity_score = min(5, max(1, int(confidence * 5)))  # Scale confidence to 1-5
+                    severity_score = min(5, max(1, int(confidence * 5)))  
 
-                    # Determine recommendation status based on severity
                     if severity_score >= 4:
                         recommendation_status = "critical"
                         triage_recommendation = f"Seek immediate medical attention for {predicted_label}. {summary}"
@@ -255,13 +233,11 @@ async def get_triage_assessment(
                         recommendation_status = "mild"
                         triage_recommendation = f"Monitor {predicted_label} and practice self-care. {summary}"
 
-                    # Update triage data with severity assessment
                     triage_data.severity_score = severity_score
                     triage_data.severity_reason = f"Based on image analysis of {predicted_label} with {confidence:.2%} confidence"
                     triage_data.recommendation_status = recommendation_status
                     triage_data.triage_recommendation = triage_recommendation
 
-                    # Add to update data for database
                     update_data.update({
                         'predicted_injury_label': predicted_label,
                         'injury_description_summary': summary,
@@ -273,15 +249,12 @@ async def get_triage_assessment(
 
                     logger.info(f"Updated assessment with top prediction - Label: {predicted_label}, Summary: {summary}")
             
-            # Update text analysis results if available
             if agent_response.get('relevant_conditions'):
                 relevant_conditions = agent_response['relevant_conditions']
                 if relevant_conditions:
-                    # Update possible diagnoses
                     new_diagnoses = []
                     for condition in relevant_conditions:
                         try:
-                            # Generate a new UUID for each diagnosis
                             diagnosis_id = uuid4()
                             condition_name = condition['data'].split(':')[0].strip()
                             condition_description = condition['data'].split(':')[1].strip() if ':' in condition['data'] else None
@@ -296,10 +269,8 @@ async def get_triage_assessment(
                             )
                             new_diagnoses.append(diagnosis)
                             
-                            # Log successful diagnosis creation
                             logger.info(f"Created new diagnosis: {condition_name} with confidence {condition['score']}")
                             
-                            # Save diagnosis to database
                             try:
                                 diagnosis_data = {
                                     'id': str(diagnosis_id),
@@ -318,23 +289,18 @@ async def get_triage_assessment(
                             logger.warning(f"Skipping invalid diagnosis from agent: {e}")
                             continue
                     
-                    # Merge new diagnoses with existing ones
                     existing_ids = {d.id for d in triage_data.possible_diagnoses}
                     triage_data.possible_diagnoses.extend([d for d in new_diagnoses if d.id not in existing_ids])
                     
-                    # Log the final number of diagnoses
                     logger.info(f"Total diagnoses after merge: {len(triage_data.possible_diagnoses)}")
                     
-                    # Get the top condition for severity assessment
                     top_condition = relevant_conditions[0]
                     condition_name = top_condition['data'].split(':')[0].strip()
                     condition_description = top_condition['data'].split(':')[1].strip() if ':' in top_condition['data'] else None
                     
-                    # Determine severity based on confidence and condition type
                     confidence = float(top_condition['score'])
-                    severity_score = min(5, max(1, int(confidence * 5)))  # Scale confidence to 1-5
+                    severity_score = min(5, max(1, int(confidence * 5)))  
                     
-                    # Determine recommendation status based on severity
                     if severity_score >= 4:
                         recommendation_status = "critical"
                         triage_recommendation = f"Seek immediate medical attention for {condition_name}. {condition_description}"
@@ -348,13 +314,11 @@ async def get_triage_assessment(
                         recommendation_status = "mild"
                         triage_recommendation = f"Monitor {condition_name} and practice self-care. {condition_description}"
                     
-                    # Update triage data
                     triage_data.severity_score = severity_score
                     triage_data.severity_reason = f"Based on analysis of {condition_name} with {confidence:.2%} confidence"
                     triage_data.recommendation_status = recommendation_status
                     triage_data.triage_recommendation = triage_recommendation
                     
-                    # Add to update data
                     update_data.update({
                         'severity_score': severity_score,
                         'severity_reason': f"Based on analysis of {condition_name} with {confidence:.2%} confidence",
@@ -362,7 +326,6 @@ async def get_triage_assessment(
                         'triage_recommendation': triage_recommendation
                     })
             
-            # Update the database with the new analysis results
             if update_data:
                 try:
                     update_response = supabase.table("assessments").update(update_data).eq("id", assessment_id).execute()
