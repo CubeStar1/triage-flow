@@ -5,8 +5,8 @@ import Footer from "@/components/global/footer"
 import { footerConfig } from "@/lib/config/footer"
 
 export const metadata: Metadata = {
-  title: "NextJS Template",
-  description: "NextJS Template",
+  title: "Triage Flow",
+  description: "Triage Flow",
 }
 
 export default function DashboardLayout({

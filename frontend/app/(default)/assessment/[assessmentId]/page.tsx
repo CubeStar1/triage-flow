@@ -72,7 +72,7 @@ export default function TriagePage({ params }: { params: Promise<{ assessmentId:
         <div className="container mx-auto px-4 md:px-6 lg:px-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6 xl:gap-8 overflow-hidden min-h-0">
           <div className="lg:col-span-2 flex flex-col overflow-hidden">
             <Tabs defaultValue="image" className="w-full flex flex-col flex-1 min-h-0">
-              <TabsList className={`grid w-full ${user?.role === 'patient' ? 'grid-cols-3' : 'grid-cols-3'} mb-3 shrink-0`}>
+              <TabsList className={`grid w-full ${user?.role === 'patient' ? 'grid-cols-4' : 'grid-cols-4'} mb-3 shrink-0`}>
                 <TabsTrigger value="image">
                   <ImageIconLucideBase className="mr-2 h-4 w-4" /> Image
                 </TabsTrigger>
@@ -84,11 +84,11 @@ export default function TriagePage({ params }: { params: Promise<{ assessmentId:
                     <Network className="mr-2 h-4 w-4" /> Agent 
                   </TabsTrigger>
                 )}
-                {user?.role === 'patient' && (
+                {/* {user?.role === 'patient' && ( */}
                   <TabsTrigger value="voice">
                     <Mic className="mr-2 h-4 w-4" /> Voice Assistant
                   </TabsTrigger>
-                )}
+                {/* )} */}
               </TabsList>
               
               <TabsContent value="image" className="flex-1 overflow-y-auto">
@@ -109,11 +109,11 @@ export default function TriagePage({ params }: { params: Promise<{ assessmentId:
                 </TabsContent>
               )}
 
-              {user?.role === 'patient' && (
+              {/* {user?.role === 'patient' && ( */}
                 <TabsContent value="voice" className="flex-1 overflow-y-auto">
                   <CompactVoiceAssistant triageData={triageData} />
                 </TabsContent>
-              )}
+              {/* )} */}
             </Tabs>
           </div>
 

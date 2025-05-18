@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { Camera, Brain, FileText, Bot, Scale, MessageSquareText } from "lucide-react"
+import Image from "next/image"
 
 const flowSteps = [
   {
@@ -97,6 +98,23 @@ export function SystemFlow() {
           </motion.div>
         ))}
       </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="relative mx-auto mt-16 sm:mt-20 lg:mt-24"
+      >
+        <div className="relative rounded-2xl bg-gradient-to-b from-muted/50 to-muted p-2 ring-1 ring-foreground/10 backdrop-blur-3xl dark:from-muted/30 dark:to-background/80">
+          <Image
+            src="/landing/triage_architecture.png"
+            alt="Smart Triage System Architecture"
+            width={1200}
+            height={800}
+            quality={100}
+            className="rounded-xl shadow-2xl ring-1 ring-foreground/10 transition-all duration-300"
+          />
+        </div>
+      </motion.div>
     </section>
   )
-} 
+}
