@@ -151,28 +151,37 @@ class DescriptorAgent:
             self.classification_model = None
 
     def _process_image(self, image_url: str) -> List[Dict[str, Any]]:
-        """Process an image using the custom ResNet152 model"""
+        """Process an image using the custom ResNet152 model, matching the inference.py pipeline"""
         if not self.classification_model:
             return []
 
+        import cv2
+        import tempfile
+        import requests
+        import numpy as np
+        import tensorflow as tf
+
         try:
-            # Download image
+            # Download image to a temporary file
             response = requests.get(image_url)
-            img = Image.open(io.BytesIO(response.content))
-            
-            # Preprocess image
-            img = img.resize((224, 224))
-            img_array = keras_image.img_to_array(img)
-            img_array = np.expand_dims(img_array, axis=0)
-            img_array = img_array / 255.0  # Normalize pixel values
-            
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp:
+                tmp.write(response.content)
+                tmp_path = tmp.name
+
+            # Load and preprocess the image using cv2 (to match training/inference.py)
+            img = cv2.imread(tmp_path)
+            img = cv2.resize(img, (224, 224))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img_array = np.expand_dims(img, axis=0)
+            img_array = tf.keras.applications.resnet.preprocess_input(img_array)
+
             # Get predictions
             predictions = self.classification_model.predict(img_array)
-            
+
             # Get top 5 predictions
             top_indices = np.argsort(predictions[0])[-5:][::-1]
             top_scores = predictions[0][top_indices]
-            
+
             return [
                 {
                     'class': CLASS_MAPPING.get(idx, f"Unknown_Class_{idx}"),
@@ -284,30 +293,15 @@ class DescriptorAgent:
                 image_analysis = self._process_image(image_url)
                 response['image_analysis'] = image_analysis
 
-                # Update knowledge base with new information from image analysis
                 if image_analysis:
-                    # Get the top prediction
+                    # Use the top class label as the FAISS query
                     top_prediction = image_analysis[0]
-                    
-                    # Create a query based on the image analysis
-                    image_query = f"Skin condition: {top_prediction['class']} with {top_prediction['confidence']:.2%} confidence"
-                    
-                    # Find relevant conditions using FAISS
-                    relevant_conditions = self._find_relevant_conditions(image_query)
+                    class_label = top_prediction['class']
+                    relevant_conditions = self._find_relevant_conditions(class_label)
                     if relevant_conditions:
                         response['relevant_conditions'] = relevant_conditions
-                    
-                    # Update knowledge base with new information
-                    new_data = {
-                        'condition': top_prediction['class'],
-                        'overview': f"Skin condition identified from image analysis with {top_prediction['confidence']:.2%} confidence",
-                        'symptoms': "Symptoms to be determined based on patient description",
-                        'treatment': "Treatment recommendations to be provided by healthcare professional",
-                        'patient_explanation': f"This appears to be {top_prediction['class']} based on the image analysis"
-                    }
-                    self._update_knowledge_base(new_data)
 
-            # Process text query if provided
+            # Process text query if provided (optional, can be used for additional context)
             if query:
                 text_conditions = self._find_relevant_conditions(query)
                 if text_conditions:

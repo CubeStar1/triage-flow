@@ -222,13 +222,56 @@ async def get_triage_assessment(
             if agent_response.get('image_analysis'):
                 image_analysis = agent_response['image_analysis']
                 if image_analysis:
+                    # Get the top prediction for assessment table
                     top_prediction = image_analysis[0]
-                    triage_data.predicted_injury_label = top_prediction['class']
-                    triage_data.injury_description_summary = top_prediction['description']
+                    predicted_label = top_prediction['class']
+                    confidence = float(top_prediction['confidence'])
+
+                    # Use the top FAISS result for the summary if available
+                    summary = None
+                    if agent_response.get('relevant_conditions') and agent_response['relevant_conditions']:
+                        summary = agent_response['relevant_conditions'][0]['data']
+                    else:
+                        summary = top_prediction['description']
+
+                    # Update triage data with top prediction and summary
+                    triage_data.predicted_injury_label = predicted_label
+                    triage_data.injury_description_summary = summary
+
+                    # Determine severity based on image analysis confidence
+                    severity_score = min(5, max(1, int(confidence * 5)))  # Scale confidence to 1-5
+
+                    # Determine recommendation status based on severity
+                    if severity_score >= 4:
+                        recommendation_status = "critical"
+                        triage_recommendation = f"Seek immediate medical attention for {predicted_label}. {summary}"
+                    elif severity_score >= 3:
+                        recommendation_status = "severe"
+                        triage_recommendation = f"Seek urgent medical care for {predicted_label}. {summary}"
+                    elif severity_score >= 2:
+                        recommendation_status = "moderate"
+                        triage_recommendation = f"Schedule a routine appointment for {predicted_label}. {summary}"
+                    else:
+                        recommendation_status = "mild"
+                        triage_recommendation = f"Monitor {predicted_label} and practice self-care. {summary}"
+
+                    # Update triage data with severity assessment
+                    triage_data.severity_score = severity_score
+                    triage_data.severity_reason = f"Based on image analysis of {predicted_label} with {confidence:.2%} confidence"
+                    triage_data.recommendation_status = recommendation_status
+                    triage_data.triage_recommendation = triage_recommendation
+
+                    # Add to update data for database
                     update_data.update({
-                        'predicted_injury_label': top_prediction['class'],
-                        'injury_description_summary': top_prediction['description']
+                        'predicted_injury_label': predicted_label,
+                        'injury_description_summary': summary,
+                        'severity_score': severity_score,
+                        'severity_reason': f"Based on image analysis of {predicted_label} with {confidence:.2%} confidence",
+                        'recommendation_status': recommendation_status,
+                        'triage_recommendation': triage_recommendation
                     })
+
+                    logger.info(f"Updated assessment with top prediction - Label: {predicted_label}, Summary: {summary}")
             
             # Update text analysis results if available
             if agent_response.get('relevant_conditions'):
