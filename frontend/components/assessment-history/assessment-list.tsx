@@ -1,12 +1,12 @@
 "use client";
 
-import type { AssessmentSummary } from "@/lib/fetchers/assessment";
+import type { TriageData } from "@/lib/fetchers/assessment";
 import { AssessmentListItem } from "./assessment-list-item";
 import { FileQuestion } from "lucide-react";
 import Link from "next/link";
 
 interface AssessmentListProps {
-  assessments: AssessmentSummary[];
+  assessments: TriageData[];
 }
 
 export function AssessmentList({ assessments }: AssessmentListProps) {
