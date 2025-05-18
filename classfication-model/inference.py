@@ -3,23 +3,33 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import os
+import cv2
 
-# Load the pre-trained ResNet101 model
+# Configure TensorFlow to use GPU memory growth
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(f"GPU memory growth error: {e}")
+
+# Load the pre-trained ResNet152 model
 try:
-    model = load_model('C:\\Users\\pradh\\Documents\\Aventus3\\resnet152.h5')
+    model = load_model('/home/rahul/Downloads/resnet152.h5')
 except Exception as e:
     print(f"Error loading the model: {e}")
     model = None
 
 def inference(img_path, target_size=(224, 224)):
     """
-    Performs inference on an image using the loaded ResNet101 model.
+    Performs inference on an image using the loaded ResNet152 model.
 
     Args:
         img_path (str): Path to the input image file.
         target_size (tuple): The target size (height, width) for resizing the image,
                              consistent with the model's input requirements.
-                             For ResNet101, this is typically (224, 224).
+                             For ResNet152, this is typically (224, 224).
 
     Returns:
         tuple: A tuple containing the predicted class index and the probability
@@ -27,14 +37,15 @@ def inference(img_path, target_size=(224, 224)):
                model is not loaded or if there's an error during processing.
     """
     if model is None:
-        print("Error: Model not loaded. Please ensure 'resnet101.h5' exists in the correct path.")
+        print("Error: Model not loaded. Please ensure 'resnet152.h5' exists in the correct path.")
         return None, None
 
     try:
-        # Load and preprocess the image
-        img = image.load_img(img_path, target_size=target_size)
-        img_array = image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+        # Load and preprocess the image using cv2 to match training
+        img = cv2.imread(img_path)
+        img = cv2.resize(img, target_size)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+        img_array = np.expand_dims(img, axis=0)  # Add batch dimension
         img_array = tf.keras.applications.resnet.preprocess_input(img_array)
 
         # Perform inference
@@ -52,12 +63,10 @@ def inference(img_path, target_size=(224, 224)):
 
 if __name__ == '__main__':
     # Path to a sample image from your Dermnet dataset
-    dermnet_image_path ="C:\\Users\\pradh\\Documents\\Aventus3\\07Acne081101.jpg"
+    dermnet_image_path ="/home/rahul/Desktop/WorkSpace/triage-flow/classfication-model/Assets/Warts Molluscum and other Viral Infections/corns-24.jpg"
     # Replace 'path/to/your/dermnet/image.jpg' with the actual path to an image
 
-    # If you have a list of class names corresponding to the order
-    # in which your model was trained, define it here.
-    # This is crucial for interpreting the predicted class index.
+    # Class labels in the correct order (matching training data)
     class_labels = [
         'acne',
         'actinic keratosis basal cell carcinoma and other malignant lesions',
@@ -95,6 +104,14 @@ if __name__ == '__main__':
 
             if class_labels and 0 <= predicted_class < len(class_labels):
                 predicted_label = class_labels[predicted_class]
+                confidence = probabilities[predicted_class]
                 print(f"Predicted label: {predicted_label}")
+                print(f"Confidence: {confidence:.2%}")
+                
+                # Print top 3 predictions
+                top_3_idx = np.argsort(probabilities)[-3:][::-1]
+                print("\nTop 3 predictions:")
+                for idx in top_3_idx:
+                    print(f"{class_labels[idx]}: {probabilities[idx]:.2%}")
             else:
                 print("Note: Class labels not provided or predicted index out of range.")
