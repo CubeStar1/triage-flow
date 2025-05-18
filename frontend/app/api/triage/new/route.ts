@@ -110,6 +110,24 @@ export async function POST(request: Request) {
       );
     }
 
+    // Call FastAPI endpoint to start triage generation
+    try {
+      const triageResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/triage/${assessment.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!triageResponse.ok) {
+        console.error('FastAPI error:', await triageResponse.text());
+        // We still return success since the assessment was created
+      }
+    } catch (triageError) {
+      console.error('Error calling triage endpoint:', triageError);
+      // We still return success since the assessment was created
+    }
+
     return NextResponse.json({
       assessmentId: assessment.id,
     }, { status: 200 });

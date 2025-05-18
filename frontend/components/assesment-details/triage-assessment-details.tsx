@@ -1,4 +1,8 @@
+'use client';
+
+import * as React from 'react';
 import type { TriageData } from '@/lib/fetchers/assessment';
+import { PatientInfoCard } from './patient-info-card';
 import { AlertTriangle, CheckCircle, ShieldAlert, Info, ListChecks, UserCheck, Microscope, HelpCircle, FileText as FileTextIcon, Activity, MessageSquareText, Brain } from 'lucide-react';
 import { PossibleDiagnosisItem } from "@/components/assesment-details/possible-diagnosis-item";
 import { Badge } from "@/components/ui/badge";
@@ -79,16 +83,13 @@ export function TriageAssessmentDetails({ triageData }: TriageAssessmentDetailsP
           <p className="text-sm text-muted-foreground dark:text-slate-300 leading-relaxed">{triageData.triageRecommendation}</p>
         </InfoCard>
 
-        {triageData.symptomDescription && (
-          <InfoCard 
-            title="Symptoms Provided by Patient" 
-            icon={<MessageSquareText size={18} />}
-          >
-            <p className="text-sm text-muted-foreground dark:text-slate-300 italic leading-relaxed">
-              &ldquo;{triageData.symptomDescription}&rdquo;
-            </p>
-          </InfoCard>
-        )}
+        <InfoCard 
+          title="Patient Information & Symptoms" 
+          icon={<MessageSquareText size={18} />}
+          className="overflow-visible"
+        >
+          <PatientInfoCard triageData={triageData} />
+        </InfoCard>
 
         {triageData.possibleDiagnoses && triageData.possibleDiagnoses.length > 0 && (
           <InfoCard 
