@@ -172,7 +172,7 @@ Here are some glimpses of the Triage Flow application:
     MODEL_GDRIVE_ID=19Zcav3YPYkh4JnFgMUkSayVwuUaWCgmh
     ```
 5.  **Run the backend server:**
-\    ```bash
+    ```bash
     cd backend
     uvicorn api.triage_endpoint:app --host 0.0.0.0 --port 8000 --reload
     ```
