@@ -59,23 +59,12 @@ export function Hero() {
             </ShimmerButton>
           </Link>
           <Link href="/assessment">
-            <div className="block dark:hidden">
+            <div>
               <ShimmerButton 
                 className="flex items-center gap-2 px-6 py-3 text-base sm:text-lg"
                 background="linear-gradient(to right, #7928CA, #FF0080)"
               >
                 <span className="whitespace-pre-wrap text-center font-medium leading-none tracking-tight text-white">
-                  View Assessment History
-                </span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 sm:w-5 sm:h-5" />
-              </ShimmerButton>
-            </div>
-            <div className="hidden dark:block">
-              <ShimmerButton 
-                className="flex items-center gap-2 px-6 py-3 text-base sm:text-lg"
-                background="linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.05))"
-              >
-                <span className="whitespace-pre-wrap text-center font-medium leading-none tracking-tight text-white/90">
                   View Assessment History
                 </span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 sm:w-5 sm:h-5" />
