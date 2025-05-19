@@ -5,6 +5,7 @@ import os
 import io
 import tempfile
 from pathlib import Path
+import gdown
 
 # Data processing and model imports
 import numpy as np
@@ -29,18 +30,47 @@ from google.genai import types
 from dotenv import load_dotenv
 load_dotenv()
 
-# Configure API key
+# Configure API keys
 API_KEY = os.getenv("GOOGLE_API_KEY")
 if not API_KEY:
     raise ValueError("GOOGLE_API_KEY not found in environment variables")
 os.environ["GOOGLE_API_KEY"] = API_KEY
+
+# Google Drive configuration
+MODEL_FILENAME = 'resnet152.h5'
+# Replace this with your Google Drive file ID
+MODEL_GDRIVE_ID = os.getenv('MODEL_GDRIVE_ID')
 
 import google.generativeai as genai
 
 # Path configurations
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 RAG_DATA_PATH = BASE_DIR / "rag" / "ragData.json"
-MODEL_PATH = os.getenv("CLASSIFICATION_MODEL_PATH", BASE_DIR / "weights" / "resnet152.h5")
+MODEL_DIR = BASE_DIR / "weights"
+MODEL_PATH = MODEL_DIR / MODEL_FILENAME
+
+def download_model_if_needed():
+    """Download the model from Google Drive if it doesn't exist locally"""
+    if MODEL_PATH.exists():
+        return True
+        
+    if not MODEL_GDRIVE_ID:
+        raise ValueError("MODEL_GDRIVE_ID not found in environment variables")
+        
+    try:
+        # Create weights directory if it doesn't exist
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Download from Google Drive
+        url = f'https://drive.google.com/uc?id={MODEL_GDRIVE_ID}'
+        gdown.download(url, str(MODEL_PATH), quiet=False)
+        
+        if MODEL_PATH.exists():
+            return True
+        return False
+    except Exception as e:
+        print(f"Error downloading model: {e}")
+        return False
 
 # Classification mappings
 CLASS_MAPPING = {
@@ -126,10 +156,14 @@ class DescriptorAgent:
     def _initialize_classification_model(self):
         """Initialize the custom ResNet152 model"""
         try:
-            self.classification_model = load_model(MODEL_PATH)
-            print("ResNet152 model loaded successfully")
+            # Download model if needed before loading
+            if download_model_if_needed():
+                self.classification_model = load_model(MODEL_PATH)
+            else:
+                print("Failed to download model from Supabase")
+                self.classification_model = None
         except Exception as e:
-            print(f"Warning: Failed to load classification model: {e}")
+            print(f"Error loading classification model: {e}")
             self.classification_model = None
 
     def _process_image(self, image_url: str) -> List[Dict[str, Any]]:

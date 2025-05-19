@@ -7,7 +7,4 @@ venv
 triage-flow/backend/version_3_multi_agent/a2a_samples.egg-info
 triage-flow/backend/version_3_multi_agent/version_3_multi_agent.egg-info
 
-
-backend/version_3_multi_agent/agents/agent1/resnet152.h5
 frontend/env.example
-backend/weights
