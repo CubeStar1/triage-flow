@@ -1,5 +1,10 @@
 export const protectedPaths = [
     "/dashboard",
+    "/assessment",
+    "/assessment/new",
+    "/voice-assistant",
+    "/video-assistant",
+    "/profile"
 
 ];
 export const authPaths = [
