@@ -1,5 +1,4 @@
-# Healthcare Triage Assistant
-
+# Triage Flow: AI-Powered Medical Triage System Frontend
 A modern web application for AI-powered medical triage assessments. This frontend application combines multimodal inputs (text + images) with advanced AI agents to provide accurate and explainable triage recommendations.
 
 ## Features
@@ -17,14 +16,19 @@ A modern web application for AI-powered medical triage assessments. This fronten
 - **Styling**: Tailwind CSS + Shadcn UI
 - **Language**: TypeScript
 - **Database**: Supabase
+- **AI/ML**: Google Gemini ADK, OpenAI, ResNet
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18.x or later
-- npm or yarn
 - Supabase account and project
+- Heygen account and API key
+- Resend account and API key
+- Google Gemini API key
+- OpenAI API key
+- ResNet model weights
 
 ### Setup
 
@@ -40,12 +44,11 @@ npm install
 ```
 
 3. Configure environment variables:
-   - Create a `.env.local` file in the root directory
-   - Add the following variables:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+   - Create a `.env` file in the root directory by copying the content of `env.example`:
+   ```bash
+   cp env.example .env
+   ```
+   - Fill in the values for the environment variables in the `.env` file.
 
 ### Development
 
