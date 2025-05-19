@@ -7,3 +7,4 @@ sentence-transformers
 supabase
 dotenv
 gdown
+opencv-python
