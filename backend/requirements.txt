@@ -6,3 +6,4 @@ google-generativeai
 sentence-transformers
 supabase
 dotenv
+gdown
