@@ -79,11 +79,11 @@ export default function TriagePage({ params }: { params: Promise<{ assessmentId:
                 <TabsTrigger value="details">
                   <UserCircleIconBase className="mr-2 h-4 w-4" /> Details
                 </TabsTrigger>
-                {user?.role === 'healthcare_worker' && (
+                {/* {user?.role === 'healthcare_worker' && ( */}
                   <TabsTrigger value="flow">
                     <Network className="mr-2 h-4 w-4" /> Agent 
                   </TabsTrigger>
-                )}
+                {/* )} */}
                 {/* {user?.role === 'patient' && ( */}
                   <TabsTrigger value="voice">
                     <Mic className="mr-2 h-4 w-4" /> Voice Assistant
@@ -103,11 +103,11 @@ export default function TriagePage({ params }: { params: Promise<{ assessmentId:
                 <PatientDetails triageData={triageData} />
               </TabsContent>
 
-              {user?.role === 'healthcare_worker' && (
+              {/* {user?.role === 'healthcare_worker' && ( */}
                 <TabsContent value="flow" className="flex-1 overflow-y-auto">
                   <AgentFlowViewer triageData={triageData} />
                 </TabsContent>
-              )}
+              {/* )} */}
 
               {/* {user?.role === 'patient' && ( */}
                 <TabsContent value="voice" className="flex-1 overflow-y-auto">
