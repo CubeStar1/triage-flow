@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict, Any
 import os
 from dotenv import load_dotenv
@@ -18,7 +19,14 @@ from agents.agent1.agent import DescriptorAgent
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("backend_debug.log")
+    ]
+)
 logger = logging.getLogger(__name__)
 
 def parse_list_field(value: Optional[str]) -> Optional[List[str]]:
@@ -56,6 +64,19 @@ app = FastAPI(
     redoc_url="/redoc"  
 )
 
+# Configure CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://triage-flow.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 
@@ -65,6 +86,38 @@ if not supabase_url or not supabase_key:
 supabase: Client = create_client(supabase_url, supabase_key)
 
 agent = DescriptorAgent()
+
+# Startup check
+try:
+    logger.info("Performing startup database check...")
+    test_data = supabase.table("possible_diagnoses").select("*").limit(1).execute()
+    logger.info(f"Database check passed. Table 'possible_diagnoses' accessible.")
+    # Attempt a test insert to verify write permissions and schema match
+    try:
+        test_id = str(uuid4())
+        # Using a valid assessment_id is tricky without querying one first, so we'll try a dummy one and expect FK error.
+        # But if we get "column not found", we know the schema issue persists.
+        test_insert = {
+            'id': test_id,
+             # Use a random UUID for assessment_id to likely trigger FK error, 
+             # but crucially we want to see if the COLUMNS are accepted.
+            'assessment_id': str(uuid4()), 
+            'diagnosis_name': 'STARTUP_TEST',
+            'confidence_score': 0.0,
+            'description': 'Startup test',
+            'created_at': datetime.now().isoformat()
+        }
+        supabase.table("possible_diagnoses").insert(test_insert).execute()
+    except Exception as e:
+        # FK error is "success" here because it means columns matched. 
+        # Column error is what we're looking for.
+        if "foreign key constraint" in str(e).lower():
+             logger.info("Startup insert check: FK constraint triggered (expected). Schema likely correct.")
+        else:
+             logger.error(f"Startup insert check failed: {e}")
+
+except Exception as e:
+    logger.error(f"Startup database check failed: {e}")
 
 def get_supabase_client() -> Client:
     """Dependency to get Supabase client"""
@@ -141,8 +194,8 @@ async def get_triage_assessment(
                 diagnosis = PossibleDiagnosis(
                     id=parse_uuid(d["id"]),
                     assessment_id=parse_uuid(d["assessment_id"]),
-                    name=str(d["name"]),
-                    confidence=float(d["confidence"]),
+                    name=str(d["diagnosis_name"]),
+                    confidence=float(d["confidence_score"]),
                     description=d.get("description"),
                     created_at=parse_datetime(d["created_at"])
                 )
@@ -198,6 +251,8 @@ async def get_triage_assessment(
         )
         
         logger.info(f"Agent analysis for assessment {assessment_id}: {agent_response}")
+        logger.info(f"DEBUG: agent_response type: {type(agent_response)}")
+        logger.info(f"DEBUG: relevant_conditions in response: {agent_response.get('relevant_conditions') if agent_response else 'No response'}")
         
         if agent_response:
             update_data = {}
@@ -251,6 +306,7 @@ async def get_triage_assessment(
             
             if agent_response.get('relevant_conditions'):
                 relevant_conditions = agent_response['relevant_conditions']
+                logger.info(f"DEBUG: Found {len(relevant_conditions)} relevant conditions: {relevant_conditions}")
                 if relevant_conditions:
                     new_diagnoses = []
                     for condition in relevant_conditions:
@@ -280,8 +336,8 @@ async def get_triage_assessment(
                                     'description': condition_description,
                                     'created_at': datetime.now().isoformat()
                                 }
-                                supabase.table("possible_diagnoses").insert(diagnosis_data).execute()
-                                logger.info(f"Saved diagnosis {condition_name} to database")
+                                result = supabase.table("possible_diagnoses").insert(diagnosis_data).execute()
+                                logger.info(f"Saved diagnosis {condition_name} to database. Result: {result}")
                             except Exception as e:
                                 logger.error(f"Failed to save diagnosis {condition_name} to database: {str(e)}")
                             
