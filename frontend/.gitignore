@@ -40,9 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/app/(default)/video-assistant
-/components/video-assistant
-/app/api/get-access-token
-/app/api/heygen-chat
-/components/heygen
+# /app/(default)/video-assistant
+# /components/video-assistant
+# /app/api/get-access-token
+# /app/api/heygen-chat
+# /components/heygen
 
